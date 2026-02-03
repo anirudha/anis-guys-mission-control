@@ -33,7 +33,17 @@ dev = [
   "black==24.10.0",
   "flake8==7.1.1",
   "isort==5.13.2",
+  "mypy==1.11.2",
   "pytest==8.3.3",
   "pytest-asyncio==0.24.0",
   "ruff==0.6.9",
 ]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+check_untyped_defs = true
+plugins = ["pydantic.mypy"]

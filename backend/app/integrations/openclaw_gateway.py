@@ -58,10 +58,12 @@ async def _send_request(
 
 
 async def _handle_challenge(
-    ws: websockets.WebSocketClientProtocol, first_message: str | None
+    ws: websockets.WebSocketClientProtocol, first_message: str | bytes | None
 ) -> None:
     if not first_message:
         return
+    if isinstance(first_message, bytes):
+        first_message = first_message.decode("utf-8")
     data = json.loads(first_message)
     if data.get("type") != "event" or data.get("event") != "connect.challenge":
         return

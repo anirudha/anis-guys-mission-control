@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 
-from app.core.auth import get_auth_context
+from app.api.deps import require_admin_auth
+from app.core.auth import AuthContext
 from app.core.config import settings
 from app.integrations.openclaw_gateway import (
     OpenClawGatewayError,
@@ -10,14 +11,12 @@ from app.integrations.openclaw_gateway import (
     openclaw_call,
     send_message,
 )
-from app.services.admin_access import require_admin
 
 router = APIRouter(prefix="/gateway", tags=["gateway"])
 
 
 @router.get("/status")
-async def gateway_status(auth=Depends(get_auth_context)) -> dict[str, object]:
-    require_admin(auth)
+async def gateway_status(auth: AuthContext = Depends(require_admin_auth)) -> dict[str, object]:
     gateway_url = settings.openclaw_gateway_url or "ws://127.0.0.1:18789"
     try:
         sessions = await openclaw_call("sessions.list")
@@ -40,8 +39,7 @@ async def gateway_status(auth=Depends(get_auth_context)) -> dict[str, object]:
 
 
 @router.get("/sessions")
-async def list_sessions(auth=Depends(get_auth_context)) -> dict[str, object]:
-    require_admin(auth)
+async def list_sessions(auth: AuthContext = Depends(require_admin_auth)) -> dict[str, object]:
     try:
         sessions = await openclaw_call("sessions.list")
     except OpenClawGatewayError as exc:
@@ -52,8 +50,9 @@ async def list_sessions(auth=Depends(get_auth_context)) -> dict[str, object]:
 
 
 @router.get("/sessions/{session_id}")
-async def get_session(session_id: str, auth=Depends(get_auth_context)) -> dict[str, object]:
-    require_admin(auth)
+async def get_session(
+    session_id: str, auth: AuthContext = Depends(require_admin_auth)
+) -> dict[str, object]:
     try:
         sessions = await openclaw_call("sessions.list")
     except OpenClawGatewayError as exc:
@@ -69,8 +68,9 @@ async def get_session(session_id: str, auth=Depends(get_auth_context)) -> dict[s
 
 
 @router.get("/sessions/{session_id}/history")
-async def get_session_history(session_id: str, auth=Depends(get_auth_context)) -> dict[str, object]:
-    require_admin(auth)
+async def get_session_history(
+    session_id: str, auth: AuthContext = Depends(require_admin_auth)
+) -> dict[str, object]:
     try:
         history = await get_chat_history(session_id)
     except OpenClawGatewayError as exc:
@@ -84,9 +84,8 @@ async def get_session_history(session_id: str, auth=Depends(get_auth_context)) -
 async def send_session_message(
     session_id: str,
     payload: dict = Body(...),
-    auth=Depends(get_auth_context),
+    auth: AuthContext = Depends(require_admin_auth),
 ) -> dict[str, bool]:
-    require_admin(auth)
     content = payload.get("content")
     if not content:
         raise HTTPException(

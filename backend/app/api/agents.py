@@ -7,10 +7,10 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
-from app.core.auth import get_auth_context
+from app.api.deps import require_admin_auth
+from app.core.auth import AuthContext
 from app.db.session import get_session
 from app.integrations.openclaw_gateway import OpenClawGatewayError, openclaw_call
-from app.models.activity_events import ActivityEvent
 from app.models.agents import Agent
 from app.schemas.agents import (
     AgentCreate,
@@ -19,7 +19,7 @@ from app.schemas.agents import (
     AgentRead,
     AgentUpdate,
 )
-from app.services.admin_access import require_admin
+from app.services.activity_log import record_activity
 from app.services.agent_provisioning import send_provisioning_message
 
 router = APIRouter(prefix="/agents", tags=["agents"])
@@ -54,20 +54,28 @@ def _with_computed_status(agent: Agent) -> Agent:
 
 
 def _record_heartbeat(session: Session, agent: Agent) -> None:
-    event = ActivityEvent(
+    record_activity(
+        session,
         event_type="agent.heartbeat",
         message=f"Heartbeat received from {agent.name}.",
         agent_id=agent.id,
     )
-    session.add(event)
+
+
+def _record_provisioning_failure(session: Session, agent: Agent, error: str) -> None:
+    record_activity(
+        session,
+        event_type="agent.provision.failed",
+        message=f"Provisioning message failed: {error}",
+        agent_id=agent.id,
+    )
 
 
 @router.get("", response_model=list[AgentRead])
 def list_agents(
     session: Session = Depends(get_session),
-    auth=Depends(get_auth_context),
+    auth: AuthContext = Depends(require_admin_auth),
 ) -> list[Agent]:
-    require_admin(auth)
     agents = list(session.exec(select(Agent)))
     return [_with_computed_status(agent) for agent in agents]
 
@@ -76,9 +84,8 @@ def list_agents(
 async def create_agent(
     payload: AgentCreate,
     session: Session = Depends(get_session),
-    auth=Depends(get_auth_context),
+    auth: AuthContext = Depends(require_admin_auth),
 ) -> Agent:
-    require_admin(auth)
     agent = Agent.model_validate(payload)
     session_key, session_error = await _ensure_gateway_session(agent.name)
     agent.openclaw_session_id = session_key
@@ -86,41 +93,27 @@ async def create_agent(
     session.commit()
     session.refresh(agent)
     if session_error:
-        session.add(
-            ActivityEvent(
-                event_type="agent.session.failed",
-                message=f"Session sync failed for {agent.name}: {session_error}",
-                agent_id=agent.id,
-            )
+        record_activity(
+            session,
+            event_type="agent.session.failed",
+            message=f"Session sync failed for {agent.name}: {session_error}",
+            agent_id=agent.id,
         )
     else:
-        session.add(
-            ActivityEvent(
-                event_type="agent.session.created",
-                message=f"Session created for {agent.name}.",
-                agent_id=agent.id,
-            )
+        record_activity(
+            session,
+            event_type="agent.session.created",
+            message=f"Session created for {agent.name}.",
+            agent_id=agent.id,
         )
     session.commit()
     try:
         await send_provisioning_message(agent)
     except OpenClawGatewayError as exc:
-        session.add(
-            ActivityEvent(
-                event_type="agent.provision.failed",
-                message=f"Provisioning message failed: {exc}",
-                agent_id=agent.id,
-            )
-        )
+        _record_provisioning_failure(session, agent, str(exc))
         session.commit()
     except Exception as exc:  # pragma: no cover - unexpected provisioning errors
-        session.add(
-            ActivityEvent(
-                event_type="agent.provision.failed",
-                message=f"Provisioning message failed: {exc}",
-                agent_id=agent.id,
-            )
-        )
+        _record_provisioning_failure(session, agent, str(exc))
         session.commit()
     return agent
 
@@ -129,9 +122,8 @@ async def create_agent(
 def get_agent(
     agent_id: str,
     session: Session = Depends(get_session),
-    auth=Depends(get_auth_context),
+    auth: AuthContext = Depends(require_admin_auth),
 ) -> Agent:
-    require_admin(auth)
     agent = session.get(Agent, agent_id)
     if agent is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -143,9 +135,8 @@ def update_agent(
     agent_id: str,
     payload: AgentUpdate,
     session: Session = Depends(get_session),
-    auth=Depends(get_auth_context),
+    auth: AuthContext = Depends(require_admin_auth),
 ) -> Agent:
-    require_admin(auth)
     agent = session.get(Agent, agent_id)
     if agent is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -164,9 +155,8 @@ def heartbeat_agent(
     agent_id: str,
     payload: AgentHeartbeat,
     session: Session = Depends(get_session),
-    auth=Depends(get_auth_context),
+    auth: AuthContext = Depends(require_admin_auth),
 ) -> Agent:
-    require_admin(auth)
     agent = session.get(Agent, agent_id)
     if agent is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -185,9 +175,8 @@ def heartbeat_agent(
 async def heartbeat_or_create_agent(
     payload: AgentHeartbeatCreate,
     session: Session = Depends(get_session),
-    auth=Depends(get_auth_context),
+    auth: AuthContext = Depends(require_admin_auth),
 ) -> Agent:
-    require_admin(auth)
     agent = session.exec(select(Agent).where(Agent.name == payload.name)).first()
     if agent is None:
         agent = Agent(name=payload.name, status=payload.status or "online")
@@ -197,81 +186,53 @@ async def heartbeat_or_create_agent(
         session.commit()
         session.refresh(agent)
         if session_error:
-            session.add(
-                ActivityEvent(
-                    event_type="agent.session.failed",
-                    message=f"Session sync failed for {agent.name}: {session_error}",
-                    agent_id=agent.id,
-                )
+            record_activity(
+                session,
+                event_type="agent.session.failed",
+                message=f"Session sync failed for {agent.name}: {session_error}",
+                agent_id=agent.id,
             )
         else:
-            session.add(
-                ActivityEvent(
-                    event_type="agent.session.created",
-                    message=f"Session created for {agent.name}.",
-                    agent_id=agent.id,
-                )
+            record_activity(
+                session,
+                event_type="agent.session.created",
+                message=f"Session created for {agent.name}.",
+                agent_id=agent.id,
             )
         session.commit()
         try:
             await send_provisioning_message(agent)
         except OpenClawGatewayError as exc:
-            session.add(
-                ActivityEvent(
-                    event_type="agent.provision.failed",
-                    message=f"Provisioning message failed: {exc}",
-                    agent_id=agent.id,
-                )
-            )
+            _record_provisioning_failure(session, agent, str(exc))
             session.commit()
         except Exception as exc:  # pragma: no cover - unexpected provisioning errors
-            session.add(
-                ActivityEvent(
-                    event_type="agent.provision.failed",
-                    message=f"Provisioning message failed: {exc}",
-                    agent_id=agent.id,
-                )
-            )
+            _record_provisioning_failure(session, agent, str(exc))
             session.commit()
     elif not agent.openclaw_session_id:
         session_key, session_error = await _ensure_gateway_session(agent.name)
         agent.openclaw_session_id = session_key
         if session_error:
-            session.add(
-                ActivityEvent(
-                    event_type="agent.session.failed",
-                    message=f"Session sync failed for {agent.name}: {session_error}",
-                    agent_id=agent.id,
-                )
+            record_activity(
+                session,
+                event_type="agent.session.failed",
+                message=f"Session sync failed for {agent.name}: {session_error}",
+                agent_id=agent.id,
             )
         else:
-            session.add(
-                ActivityEvent(
-                    event_type="agent.session.created",
-                    message=f"Session created for {agent.name}.",
-                    agent_id=agent.id,
-                )
+            record_activity(
+                session,
+                event_type="agent.session.created",
+                message=f"Session created for {agent.name}.",
+                agent_id=agent.id,
             )
         session.commit()
         try:
             await send_provisioning_message(agent)
         except OpenClawGatewayError as exc:
-            session.add(
-                ActivityEvent(
-                    event_type="agent.provision.failed",
-                    message=f"Provisioning message failed: {exc}",
-                    agent_id=agent.id,
-                )
-            )
+            _record_provisioning_failure(session, agent, str(exc))
             session.commit()
         except Exception as exc:  # pragma: no cover - unexpected provisioning errors
-            session.add(
-                ActivityEvent(
-                    event_type="agent.provision.failed",
-                    message=f"Provisioning message failed: {exc}",
-                    agent_id=agent.id,
-                )
-            )
+            _record_provisioning_failure(session, agent, str(exc))
             session.commit()
     if payload.status:
         agent.status = payload.status
@@ -288,9 +249,8 @@ async def heartbeat_or_create_agent(
 def delete_agent(
     agent_id: str,
     session: Session = Depends(get_session),
-    auth=Depends(get_auth_context),
+    auth: AuthContext = Depends(require_admin_auth),
 ) -> dict[str, bool]:
-    require_admin(auth)
     agent = session.get(Agent, agent_id)
     if agent:
         session.delete(agent)
