@@ -2,11 +2,16 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import sys
+from pathlib import Path
 from uuid import UUID
 
-from app.db.session import async_session_maker
-from app.models.gateways import Gateway
-from app.services.template_sync import sync_gateway_templates
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(BACKEND_ROOT))
+
+from app.db.session import async_session_maker  # noqa: E402
+from app.models.gateways import Gateway  # noqa: E402
+from app.services.template_sync import sync_gateway_templates  # noqa: E402
 
 
 def _parse_args() -> argparse.Namespace:

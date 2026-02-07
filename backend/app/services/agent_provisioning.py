@@ -86,6 +86,49 @@ def _slugify(value: str) -> str:
     return slug or uuid4().hex
 
 
+def _agent_id_from_session_key(session_key: str | None) -> str | None:
+    value = (session_key or "").strip()
+    if not value:
+        return None
+    if not value.startswith("agent:"):
+        return None
+    parts = value.split(":")
+    if len(parts) < 2:
+        return None
+    agent_id = parts[1].strip()
+    return agent_id or None
+
+
+def _extract_agent_id(payload: object) -> str | None:
+    def _from_list(items: object) -> str | None:
+        if not isinstance(items, list):
+            return None
+        for item in items:
+            if isinstance(item, str) and item.strip():
+                return item.strip()
+            if not isinstance(item, dict):
+                continue
+            for key in ("id", "agentId", "agent_id"):
+                raw = item.get(key)
+                if isinstance(raw, str) and raw.strip():
+                    return raw.strip()
+        return None
+
+    if isinstance(payload, list):
+        return _from_list(payload)
+    if not isinstance(payload, dict):
+        return None
+    for key in ("defaultId", "default_id", "defaultAgentId", "default_agent_id"):
+        raw = payload.get(key)
+        if isinstance(raw, str) and raw.strip():
+            return raw.strip()
+    for key in ("agents", "items", "list", "data"):
+        agent_id = _from_list(payload.get(key))
+        if agent_id:
+            return agent_id
+    return None
+
+
 def _agent_key(agent: Agent) -> str:
     session_key = agent.openclaw_session_id or ""
     if session_key.startswith("agent:"):
@@ -383,24 +426,18 @@ def _render_agent_files(
 
 async def _gateway_default_agent_id(
     config: GatewayClientConfig,
+    *,
+    fallback_session_key: str | None = None,
 ) -> str | None:
     try:
         payload = await openclaw_call("agents.list", config=config)
     except OpenClawGatewayError:
-        return None
-    if not isinstance(payload, dict):
-        return None
-    default_id = payload.get("defaultId") or payload.get("default_id")
-    if isinstance(default_id, str) and default_id:
-        return default_id
-    agents = payload.get("agents") or []
-    if isinstance(agents, list) and agents:
-        first = agents[0]
-        if isinstance(first, dict):
-            agent_id = first.get("id")
-            if isinstance(agent_id, str) and agent_id:
-                return agent_id
-    return None
+        return _agent_id_from_session_key(fallback_session_key)
+
+    agent_id = _extract_agent_id(payload)
+    if agent_id:
+        return agent_id
+    return _agent_id_from_session_key(fallback_session_key)
 
 
 async def _patch_gateway_agent_list(
@@ -585,7 +622,10 @@ async def provision_main_agent(
     client_config = GatewayClientConfig(url=gateway.url, token=gateway.token)
     await ensure_session(gateway.main_session_key, config=client_config, label="Main Agent")
 
-    agent_id = await _gateway_default_agent_id(client_config)
+    agent_id = await _gateway_default_agent_id(
+        client_config,
+        fallback_session_key=gateway.main_session_key,
+    )
     if not agent_id:
         raise OpenClawGatewayError("Unable to resolve gateway main agent id")
 
