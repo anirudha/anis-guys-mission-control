@@ -1,6 +1,16 @@
 # OpenClaw Mission Control
 
+[![CI](https://github.com/abhi1693/openclaw-mission-control/actions/workflows/ci.yml/badge.svg)](https://github.com/abhi1693/openclaw-mission-control/actions/workflows/ci.yml)
+
+
 Web UI + API for operating OpenClaw: managing boards, tasks, agents, approvals, and gateway connections.
+
+## Active development
+
+OpenClaw Mission Control is under active development. Expect breaking changes and incomplete features as we iterate.
+
+- Use at your own risk for production workloads.
+- We welcome **bug reports**, **feature requests**, and **PRs** — see GitHub Issues: https://github.com/abhi1693/openclaw-mission-control/issues
 
 - **Frontend:** Next.js app (default http://localhost:3000)
 - **Backend:** FastAPI service (default http://localhost:8000)
