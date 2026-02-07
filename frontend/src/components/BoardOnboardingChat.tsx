@@ -447,36 +447,6 @@ export function BoardOnboardingChat({
                   <span className="font-medium text-slate-900">Emoji:</span>{" "}
                   {draft.lead_agent.identity_profile?.emoji || "—"}
                 </p>
-                <p className="text-slate-700">
-                  <span className="font-medium text-slate-900">Autonomy:</span>{" "}
-                  {draft.lead_agent.autonomy_level || "—"}
-                </p>
-                <p className="text-slate-700">
-                  <span className="font-medium text-slate-900">Verbosity:</span>{" "}
-                  {draft.lead_agent.verbosity || "—"}
-                </p>
-                <p className="text-slate-700">
-                  <span className="font-medium text-slate-900">
-                    Output format:
-                  </span>{" "}
-                  {draft.lead_agent.output_format || "—"}
-                </p>
-                <p className="text-slate-700">
-                  <span className="font-medium text-slate-900">
-                    Update cadence:
-                  </span>{" "}
-                  {draft.lead_agent.update_cadence || "—"}
-                </p>
-                {draft.lead_agent.custom_instructions ? (
-                  <>
-                    <p className="mt-3 font-semibold text-slate-900">
-                      Custom instructions
-                    </p>
-                    <pre className="mt-1 whitespace-pre-wrap text-xs text-slate-600">
-                      {draft.lead_agent.custom_instructions}
-                    </pre>
-                  </>
-                ) : null}
               </>
             ) : null}
           </div>
