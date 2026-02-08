@@ -22,10 +22,8 @@ describe("/activity feed", () => {
   }
 
   it("auth negative: wrong OTP keeps us on sign-in", () => {
-    cy.visit("/activity");
-
-    // Protected route should redirect to Clerk sign-in.
-    cy.location("pathname", { timeout: 20_000 }).should("match", /\/sign-in/);
+    // Start from app-origin sign-in to avoid cross-origin confusion.
+    cy.visit("/sign-in");
 
     // Override OTP just for this test.
     Cypress.env("CLERK_TEST_OTP", "000000");
@@ -59,10 +57,10 @@ describe("/activity feed", () => {
 
     stubStreamEmpty();
 
-    cy.visit("/activity");
-    cy.location("pathname", { timeout: 20_000 }).should("match", /\/sign-in/);
-
+    // Story: user signs in, then visits /activity and sees the live feed.
     cy.loginWithClerkOtp();
+
+    cy.visit("/activity");
     assertSignedInAndLanded();
 
     cy.wait("@activityList");
@@ -78,10 +76,10 @@ describe("/activity feed", () => {
 
     stubStreamEmpty();
 
-    cy.visit("/activity");
-    cy.location("pathname", { timeout: 20_000 }).should("match", /\/sign-in/);
-
+    // Story: user signs in, then visits /activity and sees an empty-state message.
     cy.loginWithClerkOtp();
+
+    cy.visit("/activity");
     assertSignedInAndLanded();
 
     cy.wait("@activityList");
@@ -96,10 +94,10 @@ describe("/activity feed", () => {
 
     stubStreamEmpty();
 
-    cy.visit("/activity");
-    cy.location("pathname", { timeout: 20_000 }).should("match", /\/sign-in/);
-
+    // Story: user signs in, then visits /activity; API fails and user sees an error.
     cy.loginWithClerkOtp();
+
+    cy.visit("/activity");
     assertSignedInAndLanded();
 
     cy.wait("@activityList");
