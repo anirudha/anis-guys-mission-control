@@ -20,7 +20,6 @@ from app.core.time import utcnow
 from app.db import crud
 from app.db.pagination import paginate
 from app.db.session import get_session
-from app.integrations.openclaw_gateway import OpenClawGatewayError
 from app.models.activity_events import ActivityEvent
 from app.models.agents import Agent
 from app.models.approvals import Approval
@@ -41,6 +40,7 @@ from app.schemas.view_models import BoardGroupSnapshot, BoardSnapshot
 from app.services.board_group_snapshot import build_board_group_snapshot
 from app.services.board_snapshot import build_board_snapshot
 from app.services.openclaw.provisioning import cleanup_agent
+from app.services.openclaw.shared import GatewayTransportError
 from app.services.organizations import OrganizationContext, board_access_filter
 
 if TYPE_CHECKING:
@@ -288,7 +288,7 @@ async def delete_board(
         try:
             for agent in agents:
                 await cleanup_agent(agent, config)
-        except OpenClawGatewayError as exc:
+        except GatewayTransportError as exc:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=f"Gateway cleanup failed: {exc}",

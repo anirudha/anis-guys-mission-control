@@ -8,8 +8,8 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 
-from app.integrations.openclaw_gateway import GatewayConfig as GatewayClientConfig
-from app.integrations.openclaw_gateway import ensure_session, send_message
+from app.integrations.openclaw_gateway import GatewayConfig as _GatewayClientConfig
+from app.integrations.openclaw_gateway import OpenClawGatewayError, ensure_session, send_message
 from app.models.boards import Board
 from app.models.gateways import Gateway
 from app.services.openclaw.constants import (
@@ -20,6 +20,9 @@ from app.services.openclaw.constants import (
 
 if TYPE_CHECKING:
     from sqlmodel.ext.asyncio.session import AsyncSession
+
+
+GatewayClientConfig = _GatewayClientConfig
 
 
 class GatewayAgentIdentity:
@@ -87,6 +90,28 @@ async def send_gateway_agent_message(
     await send_message(message, session_key=session_key, config=config, deliver=deliver)
 
 
+async def send_gateway_agent_message_safe(
+    *,
+    session_key: str,
+    config: GatewayClientConfig,
+    agent_name: str,
+    message: str,
+    deliver: bool = False,
+) -> GatewayTransportError | None:
+    """Best-effort gateway dispatch returning transport error when one occurs."""
+    try:
+        await send_gateway_agent_message(
+            session_key=session_key,
+            config=config,
+            agent_name=agent_name,
+            message=message,
+            deliver=deliver,
+        )
+    except GatewayTransportError as exc:
+        return exc
+    return None
+
+
 def resolve_trace_id(correlation_id: str | None, *, prefix: str) -> str:
     """Resolve a stable trace id from correlation id or generate a scoped fallback."""
     normalized = (correlation_id or "").strip()
@@ -96,3 +121,6 @@ def resolve_trace_id(correlation_id: str | None, *, prefix: str) -> str:
 
 
 logger = logging.getLogger(__name__)
+
+# Keep integration exceptions behind the OpenClaw service boundary.
+GatewayTransportError = OpenClawGatewayError

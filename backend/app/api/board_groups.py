@@ -15,7 +15,6 @@ from app.core.time import utcnow
 from app.db import crud
 from app.db.pagination import paginate
 from app.db.session import get_session
-from app.integrations.openclaw_gateway import OpenClawGatewayError
 from app.models.agents import Agent
 from app.models.board_group_memory import BoardGroupMemory
 from app.models.board_groups import BoardGroup
@@ -32,6 +31,7 @@ from app.schemas.view_models import BoardGroupSnapshot
 from app.services.board_group_snapshot import build_group_snapshot
 from app.services.openclaw.constants import DEFAULT_HEARTBEAT_CONFIG
 from app.services.openclaw.provisioning import sync_gateway_agent_heartbeats
+from app.services.openclaw.shared import GatewayTransportError
 from app.services.organizations import (
     OrganizationContext,
     board_access_filter,
@@ -270,7 +270,7 @@ async def _sync_gateway_heartbeats(
             continue
         try:
             await sync_gateway_agent_heartbeats(gateway, gateway_agents)
-        except OpenClawGatewayError:
+        except GatewayTransportError:
             failed_agent_ids.extend([agent.id for agent in gateway_agents])
     return failed_agent_ids
 

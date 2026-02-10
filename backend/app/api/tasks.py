@@ -28,8 +28,6 @@ from app.core.time import utcnow
 from app.db import crud
 from app.db.pagination import paginate
 from app.db.session import async_session_maker, get_session
-from app.integrations.openclaw_gateway import GatewayConfig as GatewayClientConfig
-from app.integrations.openclaw_gateway import OpenClawGatewayError
 from app.models.activity_events import ActivityEvent
 from app.models.agents import Agent
 from app.models.approvals import Approval
@@ -44,6 +42,8 @@ from app.schemas.tasks import TaskCommentCreate, TaskCommentRead, TaskCreate, Ta
 from app.services.activity_log import record_activity
 from app.services.mentions import extract_mentions, matches_agent_mention
 from app.services.openclaw.shared import (
+    GatewayClientConfig,
+    GatewayTransportError,
     optional_gateway_config_for_board,
     send_gateway_agent_message,
 )
@@ -376,7 +376,7 @@ async def _notify_agent_on_task_assign(
             task_id=task.id,
         )
         await session.commit()
-    except OpenClawGatewayError as exc:
+    except GatewayTransportError as exc:
         record_activity(
             session,
             event_type="task.assignee_notify_failed",
@@ -447,7 +447,7 @@ async def _notify_lead_on_task_create(
             task_id=task.id,
         )
         await session.commit()
-    except OpenClawGatewayError as exc:
+    except GatewayTransportError as exc:
         record_activity(
             session,
             event_type="task.lead_notify_failed",
@@ -502,7 +502,7 @@ async def _notify_lead_on_task_unassigned(
             task_id=task.id,
         )
         await session.commit()
-    except OpenClawGatewayError as exc:
+    except GatewayTransportError as exc:
         record_activity(
             session,
             event_type="task.lead_unassigned_notify_failed",
@@ -1057,7 +1057,7 @@ async def _notify_task_comment_targets(
             "If you are mentioned but not assigned, reply in the task "
             "thread but do not change task status."
         )
-        with suppress(OpenClawGatewayError):
+        with suppress(GatewayTransportError):
             await _send_agent_task_message(
                 session_key=agent.openclaw_session_id,
                 config=config,

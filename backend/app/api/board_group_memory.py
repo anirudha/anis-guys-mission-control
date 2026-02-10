@@ -25,7 +25,6 @@ from app.core.config import settings
 from app.core.time import utcnow
 from app.db.pagination import paginate
 from app.db.session import async_session_maker, get_session
-from app.integrations.openclaw_gateway import OpenClawGatewayError
 from app.models.agents import Agent
 from app.models.board_group_memory import BoardGroupMemory
 from app.models.board_groups import BoardGroup
@@ -35,6 +34,7 @@ from app.schemas.board_group_memory import BoardGroupMemoryCreate, BoardGroupMem
 from app.schemas.pagination import DefaultLimitOffsetPage
 from app.services.mentions import extract_mentions, matches_agent_mention
 from app.services.openclaw.shared import (
+    GatewayTransportError,
     optional_gateway_config_for_board,
     send_gateway_agent_message,
 )
@@ -250,7 +250,7 @@ async def _notify_group_target(
             agent_name=agent.name,
             message=message,
         )
-    except OpenClawGatewayError:
+    except GatewayTransportError:
         return
 
 
