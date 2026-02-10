@@ -8,9 +8,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from sqlmodel import col
 
-from app.models.agents import Agent
 from app.models.boards import Board
 from app.schemas.gateway_api import (
     GatewayResolveQuery,
@@ -31,6 +29,7 @@ from app.services.openclaw.gateway_rpc import (
     send_message,
 )
 from app.services.openclaw.policies import OpenClawAuthorizationPolicy
+from app.services.openclaw.shared import GatewayAgentIdentity
 from app.services.organizations import require_board_access
 
 if TYPE_CHECKING:
@@ -124,12 +123,7 @@ class GatewaySessionService(OpenClawDBService):
             await require_board_access(self.session, user=user, board=board, write=False)
         gateway = await require_gateway_for_board(self.session, board)
         config = gateway_client_config(gateway)
-        main_agent = (
-            await Agent.objects.filter_by(gateway_id=gateway.id)
-            .filter(col(Agent.board_id).is_(None))
-            .first(self.session)
-        )
-        main_session = main_agent.openclaw_session_id if main_agent else None
+        main_session = GatewayAgentIdentity.session_key(gateway)
         return (
             board,
             config,

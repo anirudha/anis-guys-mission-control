@@ -40,6 +40,10 @@ from app.services.openclaw.gateway_rpc import (
 )
 from app.services.openclaw.internal.agent_key import agent_key as _agent_key
 from app.services.openclaw.internal.agent_key import slugify
+from app.services.openclaw.internal.session_keys import (
+    board_agent_session_key,
+    board_lead_session_key,
+)
 from app.services.openclaw.shared import GatewayAgentIdentity
 
 if TYPE_CHECKING:
@@ -251,8 +255,8 @@ def _session_key(agent: Agent) -> str:
     """
 
     if agent.is_board_lead and agent.board_id is not None:
-        return f"agent:lead-{agent.board_id}:main"
-    return f"agent:mc-{agent.id}:main"
+        return board_lead_session_key(agent.board_id)
+    return board_agent_session_key(agent.id)
 
 
 def _render_agent_files(

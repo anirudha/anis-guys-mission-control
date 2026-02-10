@@ -45,7 +45,6 @@ from app.schemas.gateways import GatewayTemplatesSyncError, GatewayTemplatesSync
 from app.services.activity_log import record_activity
 from app.services.openclaw.constants import (
     _TOOLS_KV_RE,
-    AGENT_SESSION_PREFIX,
     DEFAULT_HEARTBEAT_CONFIG,
     OFFLINE_AFTER,
 )
@@ -68,6 +67,10 @@ from app.services.openclaw.gateway_rpc import (
 )
 from app.services.openclaw.internal.agent_key import agent_key as _agent_key
 from app.services.openclaw.internal.retry import GatewayBackoff
+from app.services.openclaw.internal.session_keys import (
+    board_agent_session_key,
+    board_lead_session_key,
+)
 from app.services.openclaw.policies import OpenClawAuthorizationPolicy
 from app.services.openclaw.provisioning import (
     OpenClawGatewayControlPlane,
@@ -139,7 +142,7 @@ class OpenClawProvisioningService(OpenClawDBService):
 
     @staticmethod
     def lead_session_key(board: Board) -> str:
-        return f"agent:lead-{board.id}:main"
+        return board_lead_session_key(board.id)
 
     @staticmethod
     def lead_agent_name(_: Board) -> str:
@@ -732,8 +735,8 @@ class AgentLifecycleService(OpenClawDBService):
                 detail="Gateway main agent session key is required",
             )
         if agent.is_board_lead:
-            return f"{AGENT_SESSION_PREFIX}:lead-{agent.board_id}:main"
-        return f"{AGENT_SESSION_PREFIX}:mc-{agent.id}:main"
+            return board_lead_session_key(agent.board_id)
+        return board_agent_session_key(agent.id)
 
     @classmethod
     def workspace_path(cls, agent_name: str, workspace_root: str | None) -> str:
