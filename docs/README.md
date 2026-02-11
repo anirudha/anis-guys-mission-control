@@ -10,6 +10,9 @@ This folder is the canonical documentation set for Mission Control.
 
 ## Table of contents (IA)
 
+- [Style guide](00-style-guide.md)
+
+
 1. [Overview](01-overview.md)
 2. [Quickstart](02-quickstart.md)
 3. [Development](03-development.md)
