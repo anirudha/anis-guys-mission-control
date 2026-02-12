@@ -72,6 +72,16 @@ export default function EditBoardPage() {
   );
   const [boardType, setBoardType] = useState<string | undefined>(undefined);
   const [objective, setObjective] = useState<string | undefined>(undefined);
+  const [requireApprovalForDone, setRequireApprovalForDone] = useState<
+    boolean | undefined
+  >(undefined);
+  const [requireReviewBeforeDone, setRequireReviewBeforeDone] = useState<
+    boolean | undefined
+  >(undefined);
+  const [
+    blockStatusChangesWithPendingApproval,
+    setBlockStatusChangesWithPendingApproval,
+  ] = useState<boolean | undefined>(undefined);
   const [successMetrics, setSuccessMetrics] = useState<string | undefined>(
     undefined,
   );
@@ -189,6 +199,14 @@ export default function EditBoardPage() {
     boardGroupId ?? baseBoard?.board_group_id ?? "none";
   const resolvedBoardType = boardType ?? baseBoard?.board_type ?? "goal";
   const resolvedObjective = objective ?? baseBoard?.objective ?? "";
+  const resolvedRequireApprovalForDone =
+    requireApprovalForDone ?? baseBoard?.require_approval_for_done ?? true;
+  const resolvedRequireReviewBeforeDone =
+    requireReviewBeforeDone ?? baseBoard?.require_review_before_done ?? false;
+  const resolvedBlockStatusChangesWithPendingApproval =
+    blockStatusChangesWithPendingApproval ??
+    baseBoard?.block_status_changes_with_pending_approval ??
+    false;
   const resolvedSuccessMetrics =
     successMetrics ??
     (baseBoard?.success_metrics
@@ -238,6 +256,11 @@ export default function EditBoardPage() {
     setDescription(updated.description ?? "");
     setBoardType(updated.board_type ?? "goal");
     setObjective(updated.objective ?? "");
+    setRequireApprovalForDone(updated.require_approval_for_done ?? true);
+    setRequireReviewBeforeDone(updated.require_review_before_done ?? false);
+    setBlockStatusChangesWithPendingApproval(
+      updated.block_status_changes_with_pending_approval ?? false,
+    );
     setSuccessMetrics(
       updated.success_metrics
         ? JSON.stringify(updated.success_metrics, null, 2)
@@ -271,7 +294,10 @@ export default function EditBoardPage() {
     setMetricsError(null);
 
     let parsedMetrics: Record<string, unknown> | null = null;
-    if (resolvedSuccessMetrics.trim()) {
+    if (
+      resolvedBoardType !== "general" &&
+      resolvedSuccessMetrics.trim()
+    ) {
       try {
         parsedMetrics = JSON.parse(resolvedSuccessMetrics) as Record<
           string,
@@ -291,9 +317,19 @@ export default function EditBoardPage() {
       board_group_id:
         resolvedBoardGroupId === "none" ? null : resolvedBoardGroupId,
       board_type: resolvedBoardType,
-      objective: resolvedObjective.trim() || null,
-      success_metrics: parsedMetrics,
-      target_date: localDateInputToUtcIso(resolvedTargetDate),
+      objective:
+        resolvedBoardType === "general"
+          ? null
+          : resolvedObjective.trim() || null,
+      require_approval_for_done: resolvedRequireApprovalForDone,
+      require_review_before_done: resolvedRequireReviewBeforeDone,
+      block_status_changes_with_pending_approval:
+        resolvedBlockStatusChangesWithPendingApproval,
+      success_metrics: resolvedBoardType === "general" ? null : parsedMetrics,
+      target_date:
+        resolvedBoardType === "general"
+          ? null
+          : localDateInputToUtcIso(resolvedTargetDate),
     };
 
     updateBoardMutation.mutate({ boardId, data: payload });
@@ -408,17 +444,19 @@ export default function EditBoardPage() {
                   agents.
                 </p>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-900">
-                  Target date
-                </label>
-                <Input
-                  type="date"
-                  value={resolvedTargetDate}
-                  onChange={(event) => setTargetDate(event.target.value)}
-                  disabled={isLoading}
-                />
-              </div>
+              {resolvedBoardType !== "general" ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-900">
+                    Target date
+                  </label>
+                  <Input
+                    type="date"
+                    value={resolvedTargetDate}
+                    onChange={(event) => setTargetDate(event.target.value)}
+                    disabled={isLoading}
+                  />
+                </div>
+              ) : null}
             </div>
 
             <div className="space-y-2">
@@ -434,37 +472,155 @@ export default function EditBoardPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-900">
-                Objective
-              </label>
-              <Textarea
-                value={resolvedObjective}
-                onChange={(event) => setObjective(event.target.value)}
-                placeholder="What should this board achieve?"
-                className="min-h-[120px]"
-                disabled={isLoading}
-              />
-            </div>
+            {resolvedBoardType !== "general" ? (
+              <>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-900">
+                    Objective
+                  </label>
+                  <Textarea
+                    value={resolvedObjective}
+                    onChange={(event) => setObjective(event.target.value)}
+                    placeholder="What should this board achieve?"
+                    className="min-h-[120px]"
+                    disabled={isLoading}
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-900">
-                Success metrics (JSON)
-              </label>
-              <Textarea
-                value={resolvedSuccessMetrics}
-                onChange={(event) => setSuccessMetrics(event.target.value)}
-                placeholder='e.g. { "target": "Launch by week 2" }'
-                className="min-h-[140px] font-mono text-xs"
-                disabled={isLoading}
-              />
-              <p className="text-xs text-slate-500">
-                Add key outcomes so the lead agent can measure progress.
-              </p>
-              {metricsError ? (
-                <p className="text-xs text-red-500">{metricsError}</p>
-              ) : null}
-            </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-900">
+                    Success metrics (JSON)
+                  </label>
+                  <Textarea
+                    value={resolvedSuccessMetrics}
+                    onChange={(event) => setSuccessMetrics(event.target.value)}
+                    placeholder='e.g. { "target": "Launch by week 2" }'
+                    className="min-h-[140px] font-mono text-xs"
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs text-slate-500">
+                    Add key outcomes so the lead agent can measure progress.
+                  </p>
+                  {metricsError ? (
+                    <p className="text-xs text-red-500">{metricsError}</p>
+                  ) : null}
+                </div>
+              </>
+            ) : null}
+
+            <section className="space-y-3 border-t border-slate-200 pt-4">
+              <div>
+                <h2 className="text-base font-semibold text-slate-900">Rules</h2>
+                <p className="text-xs text-slate-600">
+                  Configure board-level workflow enforcement.
+                </p>
+              </div>
+              <div className="flex items-start gap-3 rounded-lg border border-slate-200 px-3 py-3">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={resolvedRequireApprovalForDone}
+                  aria-label="Require approval"
+                  onClick={() =>
+                    setRequireApprovalForDone(!resolvedRequireApprovalForDone)
+                  }
+                  disabled={isLoading}
+                  className={`mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition ${
+                    resolvedRequireApprovalForDone
+                      ? "border-emerald-600 bg-emerald-600"
+                      : "border-slate-300 bg-slate-200"
+                  } ${isLoading ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transition ${
+                      resolvedRequireApprovalForDone
+                        ? "translate-x-5"
+                        : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+                <span className="space-y-1">
+                  <span className="block text-sm font-medium text-slate-900">
+                    Require approval
+                  </span>
+                  <span className="block text-xs text-slate-600">
+                    Require at least one linked approval in{" "}
+                    <code>approved</code> state before a task can be marked{" "}
+                    <code>done</code>.
+                  </span>
+                </span>
+              </div>
+              <div className="flex items-start gap-3 rounded-lg border border-slate-200 px-3 py-3">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={resolvedRequireReviewBeforeDone}
+                  aria-label="Require review before done"
+                  onClick={() =>
+                    setRequireReviewBeforeDone(!resolvedRequireReviewBeforeDone)
+                  }
+                  disabled={isLoading}
+                  className={`mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition ${
+                    resolvedRequireReviewBeforeDone
+                      ? "border-emerald-600 bg-emerald-600"
+                      : "border-slate-300 bg-slate-200"
+                  } ${isLoading ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transition ${
+                      resolvedRequireReviewBeforeDone
+                        ? "translate-x-5"
+                        : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+                <span className="space-y-1">
+                  <span className="block text-sm font-medium text-slate-900">
+                    Require review before done
+                  </span>
+                  <span className="block text-xs text-slate-600">
+                    Tasks must move to <code>review</code> before they can be
+                    marked <code>done</code>.
+                  </span>
+                </span>
+              </div>
+              <div className="flex items-start gap-3 rounded-lg border border-slate-200 px-3 py-3">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={resolvedBlockStatusChangesWithPendingApproval}
+                  aria-label="Block status changes with pending approval"
+                  onClick={() =>
+                    setBlockStatusChangesWithPendingApproval(
+                      !resolvedBlockStatusChangesWithPendingApproval,
+                    )
+                  }
+                  disabled={isLoading}
+                  className={`mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition ${
+                    resolvedBlockStatusChangesWithPendingApproval
+                      ? "border-emerald-600 bg-emerald-600"
+                      : "border-slate-300 bg-slate-200"
+                  } ${isLoading ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transition ${
+                      resolvedBlockStatusChangesWithPendingApproval
+                        ? "translate-x-5"
+                        : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+                <span className="space-y-1">
+                  <span className="block text-sm font-medium text-slate-900">
+                    Block status changes with pending approval
+                  </span>
+                  <span className="block text-xs text-slate-600">
+                    Prevent status transitions while any linked approval is in{" "}
+                    <code>pending</code> state.
+                  </span>
+                </span>
+              </div>
+            </section>
 
             {gateways.length === 0 ? (
               <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
