@@ -7,17 +7,17 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/auth/clerk";
 
 import { ApiError } from "@/api/mutator";
-import { useCreateTaskTagApiV1TagsPost } from "@/api/generated/tags/tags";
-import { TaskTagForm } from "@/components/tags/TaskTagForm";
+import { useCreateTagApiV1TagsPost } from "@/api/generated/tags/tags";
+import { TagForm } from "@/components/tags/TagForm";
 import { DashboardPageLayout } from "@/components/templates/DashboardPageLayout";
 import { useOrganizationMembership } from "@/lib/use-organization-membership";
 
-export default function NewTaskTagPage() {
+export default function NewTagPage() {
   const router = useRouter();
   const { isSignedIn } = useAuth();
   const { isAdmin } = useOrganizationMembership(isSignedIn);
 
-  const createMutation = useCreateTaskTagApiV1TagsPost<ApiError>({
+  const createMutation = useCreateTagApiV1TagsPost<ApiError>({
     mutation: {
       retry: false,
     },
@@ -35,7 +35,7 @@ export default function NewTaskTagPage() {
       isAdmin={isAdmin}
       adminOnlyMessage="Only organization owners and admins can manage tags."
     >
-      <TaskTagForm
+      <TagForm
         isSubmitting={createMutation.isPending}
         submitLabel="Create tag"
         submittingLabel="Creating…"

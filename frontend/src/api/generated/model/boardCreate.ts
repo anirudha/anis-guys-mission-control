@@ -10,15 +10,15 @@ import type { BoardCreateSuccessMetrics } from "./boardCreateSuccessMetrics";
  * Payload for creating a board.
  */
 export interface BoardCreate {
-  board_group_id?: string | null;
-  board_type?: string;
+  name: string;
+  slug: string;
   description: string;
   gateway_id?: string | null;
-  goal_confirmed?: boolean;
-  goal_source?: string | null;
-  name: string;
+  board_group_id?: string | null;
+  board_type?: string;
   objective?: string | null;
-  slug: string;
   success_metrics?: BoardCreateSuccessMetrics;
   target_date?: string | null;
+  goal_confirmed?: boolean;
+  goal_source?: string | null;
 }

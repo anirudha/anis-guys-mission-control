@@ -1,4 +1,4 @@
-"""Task tag model for organization-scoped task categorization."""
+"""Tag model for organization-scoped task categorization."""
 
 from __future__ import annotations
 
@@ -14,15 +14,15 @@ from app.models.tenancy import TenantScoped
 RUNTIME_ANNOTATION_TYPES = (datetime,)
 
 
-class TaskTag(TenantScoped, table=True):
-    """Organization-scoped task tag used to classify and group tasks."""
+class Tag(TenantScoped, table=True):
+    """Organization-scoped tag used to classify and group tasks."""
 
-    __tablename__ = "task_tags"  # pyright: ignore[reportAssignmentType]
+    __tablename__ = "tags"  # pyright: ignore[reportAssignmentType]
     __table_args__ = (
         UniqueConstraint(
             "organization_id",
             "slug",
-            name="uq_task_tags_organization_id_slug",
+            name="uq_tags_organization_id_slug",
         ),
     )
 

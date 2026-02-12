@@ -14,19 +14,19 @@ from app.models.base import QueryModel
 RUNTIME_ANNOTATION_TYPES = (datetime,)
 
 
-class TaskTagAssignment(QueryModel, table=True):
+class TagAssignment(QueryModel, table=True):
     """Association row mapping one task to one tag."""
 
-    __tablename__ = "task_tag_assignments"  # pyright: ignore[reportAssignmentType]
+    __tablename__ = "tag_assignments"  # pyright: ignore[reportAssignmentType]
     __table_args__ = (
         UniqueConstraint(
             "task_id",
             "tag_id",
-            name="uq_task_tag_assignments_task_id_tag_id",
+            name="uq_tag_assignments_task_id_tag_id",
         ),
     )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     task_id: UUID = Field(foreign_key="tasks.id", index=True)
-    tag_id: UUID = Field(foreign_key="task_tags.id", index=True)
+    tag_id: UUID = Field(foreign_key="tags.id", index=True)
     created_at: datetime = Field(default_factory=utcnow)

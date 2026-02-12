@@ -10,13 +10,13 @@ import type { TaskCreateStatus } from "./taskCreateStatus";
  * Payload for creating a task.
  */
 export interface TaskCreate {
-  assigned_agent_id?: string | null;
-  created_by_user_id?: string | null;
-  depends_on_task_ids?: string[];
-  description?: string | null;
-  due_at?: string | null;
-  priority?: string;
-  status?: TaskCreateStatus;
-  tag_ids?: string[];
   title: string;
+  description?: string | null;
+  status?: TaskCreateStatus;
+  priority?: string;
+  due_at?: string | null;
+  assigned_agent_id?: string | null;
+  depends_on_task_ids?: string[];
+  tag_ids?: string[];
+  created_by_user_id?: string | null;
 }

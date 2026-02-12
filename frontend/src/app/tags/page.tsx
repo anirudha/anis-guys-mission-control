@@ -11,13 +11,13 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { ApiError } from "@/api/mutator";
 import {
-  getListTaskTagsApiV1TagsGetQueryKey,
-  type listTaskTagsApiV1TagsGetResponse,
-  useDeleteTaskTagApiV1TagsTagIdDelete,
-  useListTaskTagsApiV1TagsGet,
+  getListTagsApiV1TagsGetQueryKey,
+  type listTagsApiV1TagsGetResponse,
+  useDeleteTagApiV1TagsTagIdDelete,
+  useListTagsApiV1TagsGet,
 } from "@/api/generated/tags/tags";
-import type { TaskTagRead } from "@/api/generated/model";
-import { TaskTagsTable } from "@/components/tags/TaskTagsTable";
+import type { TagRead } from "@/api/generated/model";
+import { TagsTable } from "@/components/tags/TagsTable";
 import { DashboardPageLayout } from "@/components/templates/DashboardPageLayout";
 import { buttonVariants } from "@/components/ui/button";
 import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
@@ -32,7 +32,7 @@ const extractErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
-export default function TaskTagsPage() {
+export default function TagsPage() {
   const { isSignedIn } = useAuth();
   const { isAdmin } = useOrganizationMembership(isSignedIn);
   const router = useRouter();
@@ -43,10 +43,10 @@ export default function TaskTagsPage() {
     paramPrefix: "tags",
   });
 
-  const [deleteTarget, setDeleteTarget] = useState<TaskTagRead | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<TagRead | null>(null);
 
-  const tagsQuery = useListTaskTagsApiV1TagsGet<
-    listTaskTagsApiV1TagsGetResponse,
+  const tagsQuery = useListTagsApiV1TagsGet<
+    listTagsApiV1TagsGetResponse,
     ApiError
   >(undefined, {
     query: {
@@ -60,9 +60,9 @@ export default function TaskTagsPage() {
       tagsQuery.data?.status === 200 ? (tagsQuery.data.data.items ?? []) : [],
     [tagsQuery.data],
   );
-  const tagsKey = getListTaskTagsApiV1TagsGetQueryKey();
+  const tagsKey = getListTagsApiV1TagsGetQueryKey();
 
-  const deleteMutation = useDeleteTaskTagApiV1TagsTagIdDelete({
+  const deleteMutation = useDeleteTagApiV1TagsTagIdDelete({
     mutation: {
       onSuccess: async () => {
         setDeleteTarget(null);
@@ -101,7 +101,7 @@ export default function TaskTagsPage() {
         stickyHeader
       >
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <TaskTagsTable
+          <TagsTable
             tags={tags}
             isLoading={tagsQuery.isLoading}
             sorting={sorting}

@@ -6,11 +6,11 @@
  */
 
 /**
- * Payload for partial task-tag updates.
+ * Payload for partial tag updates.
  */
-export interface TaskTagUpdate {
-  color?: string | null;
-  description?: string | null;
+export interface TagUpdate {
   name?: string | null;
   slug?: string | null;
+  color?: string | null;
+  description?: string | null;
 }

@@ -5,7 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ListTaskTagsApiV1TagsGetParams = {
+export type ListTagsApiV1TagsGetParams = {
   /**
    * @minimum 1
    * @maximum 200

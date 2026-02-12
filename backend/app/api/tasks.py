@@ -32,9 +32,9 @@ from app.models.agents import Agent
 from app.models.approval_task_links import ApprovalTaskLink
 from app.models.approvals import Approval
 from app.models.boards import Board
+from app.models.tag_assignments import TagAssignment
 from app.models.task_dependencies import TaskDependency
 from app.models.task_fingerprints import TaskFingerprint
-from app.models.task_tag_assignments import TaskTagAssignment
 from app.models.tasks import Task
 from app.schemas.activity_events import ActivityEventRead
 from app.schemas.common import OkResponse
@@ -48,6 +48,12 @@ from app.services.openclaw.gateway_dispatch import GatewayDispatchService
 from app.services.openclaw.gateway_rpc import GatewayConfig as GatewayClientConfig
 from app.services.openclaw.gateway_rpc import OpenClawGatewayError
 from app.services.organizations import require_board_access
+from app.services.tags import (
+    TagState,
+    load_tag_state,
+    replace_tags,
+    validate_tag_ids,
+)
 from app.services.task_dependencies import (
     blocked_by_dependency_ids,
     dependency_ids_by_task_id,
@@ -55,12 +61,6 @@ from app.services.task_dependencies import (
     dependent_task_ids,
     replace_task_dependencies,
     validate_dependency_update,
-)
-from app.services.task_tags import (
-    TaskTagState,
-    load_task_tag_state,
-    replace_task_tags,
-    validate_task_tag_ids,
 )
 
 if TYPE_CHECKING:
@@ -583,7 +583,7 @@ async def _task_read_page(
         return []
 
     task_ids = [task.id for task in tasks]
-    tag_state_by_task_id = await load_task_tag_state(
+    tag_state_by_task_id = await load_tag_state(
         session,
         task_ids=task_ids,
     )
@@ -603,7 +603,7 @@ async def _task_read_page(
 
     output: list[TaskRead] = []
     for task in tasks:
-        tag_state = tag_state_by_task_id.get(task.id, TaskTagState())
+        tag_state = tag_state_by_task_id.get(task.id, TagState())
         dep_list = deps_map.get(task.id, [])
         blocked_by = blocked_by_dependency_ids(
             dependency_ids=dep_list,
@@ -630,14 +630,14 @@ async def _stream_task_state(
     *,
     board_id: UUID,
     rows: list[tuple[ActivityEvent, Task | None]],
-) -> tuple[dict[UUID, list[UUID]], dict[UUID, str], dict[UUID, TaskTagState]]:
+) -> tuple[dict[UUID, list[UUID]], dict[UUID, str], dict[UUID, TagState]]:
     task_ids = [
         task.id for event, task in rows if task is not None and event.event_type != "task.comment"
     ]
     if not task_ids:
         return {}, {}, {}
 
-    tag_state_by_task_id = await load_task_tag_state(
+    tag_state_by_task_id = await load_tag_state(
         session,
         task_ids=list({*task_ids}),
     )
@@ -666,7 +666,7 @@ def _task_event_payload(
     *,
     deps_map: dict[UUID, list[UUID]],
     dep_status: dict[UUID, str],
-    tag_state_by_task_id: dict[UUID, TaskTagState],
+    tag_state_by_task_id: dict[UUID, TagState],
 ) -> dict[str, object]:
     payload: dict[str, object] = {
         "type": event.event_type,
@@ -679,7 +679,7 @@ def _task_event_payload(
         payload["task"] = None
         return payload
 
-    tag_state = tag_state_by_task_id.get(task.id, TaskTagState())
+    tag_state = tag_state_by_task_id.get(task.id, TagState())
     dep_list = deps_map.get(task.id, [])
     blocked_by = blocked_by_dependency_ids(
         dependency_ids=dep_list,
@@ -816,7 +816,7 @@ async def create_task(
         task_id=task.id,
         depends_on_task_ids=depends_on_task_ids,
     )
-    normalized_tag_ids = await validate_task_tag_ids(
+    normalized_tag_ids = await validate_tag_ids(
         session,
         organization_id=board.organization_id,
         tag_ids=tag_ids,
@@ -843,7 +843,7 @@ async def create_task(
                 depends_on_task_id=dep_id,
             ),
         )
-    await replace_task_tags(
+    await replace_tags(
         session,
         task_id=task.id,
         tag_ids=normalized_tag_ids,
@@ -994,8 +994,8 @@ async def delete_task(
     )
     await crud.delete_where(
         session,
-        TaskTagAssignment,
-        col(TaskTagAssignment.task_id) == task.id,
+        TagAssignment,
+        col(TagAssignment.task_id) == task.id,
         commit=False,
     )
     await session.delete(task)
@@ -1231,9 +1231,9 @@ async def _task_read_response(
     board_id: UUID,
 ) -> TaskRead:
     dep_ids = await _task_dep_ids(session, board_id=board_id, task_id=task.id)
-    tag_state = (await load_task_tag_state(session, task_ids=[task.id])).get(
+    tag_state = (await load_tag_state(session, task_ids=[task.id])).get(
         task.id,
-        TaskTagState(),
+        TagState(),
     )
     blocked_ids = await _task_blocked_ids(
         session,
@@ -1337,7 +1337,7 @@ async def _normalized_update_tag_ids(
         session,
         board_id=update.board_id,
     )
-    return await validate_task_tag_ids(
+    return await validate_tag_ids(
         session,
         organization_id=organization_id,
         tag_ids=update.tag_ids,
@@ -1449,7 +1449,7 @@ async def _apply_lead_task_update(
         _lead_apply_status(update)
 
     if normalized_tag_ids is not None:
-        await replace_task_tags(
+        await replace_tags(
             session,
             task_id=update.task.id,
             tag_ids=normalized_tag_ids,
@@ -1723,7 +1723,7 @@ async def _finalize_updated_task(
                 update=update,
             )
         )
-        await replace_task_tags(
+        await replace_tags(
             session,
             task_id=update.task.id,
             tag_ids=normalized or [],

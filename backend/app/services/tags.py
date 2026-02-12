@@ -1,4 +1,4 @@
-"""Helpers for validating and loading task tags and task-tag mappings."""
+"""Helpers for validating and loading tags and tag mappings."""
 
 from __future__ import annotations
 
@@ -13,9 +13,9 @@ from fastapi import HTTPException, status
 from sqlalchemy import delete, func
 from sqlmodel import col, select
 
-from app.models.task_tag_assignments import TaskTagAssignment
-from app.models.task_tags import TaskTag
-from app.schemas.task_tags import TaskTagRef
+from app.models.tag_assignments import TagAssignment
+from app.models.tags import Tag
+from app.schemas.tags import TagRef
 
 if TYPE_CHECKING:
     from sqlmodel.ext.asyncio.session import AsyncSession
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 SLUG_RE = re.compile(r"[^a-z0-9]+")
 
 
-def slugify_task_tag(value: str) -> str:
+def slugify_tag(value: str) -> str:
     """Build a slug from arbitrary text using lowercase alphanumeric groups."""
     slug = SLUG_RE.sub("-", value.lower()).strip("-")
     return slug or "tag"
@@ -40,22 +40,22 @@ def _dedupe_uuid_list(values: Sequence[UUID]) -> list[UUID]:
     return deduped
 
 
-async def validate_task_tag_ids(
+async def validate_tag_ids(
     session: AsyncSession,
     *,
     organization_id: UUID,
     tag_ids: Sequence[UUID],
 ) -> list[UUID]:
-    """Validate task-tag IDs within an organization and return deduped IDs."""
+    """Validate tag IDs within an organization and return deduped IDs."""
     normalized = _dedupe_uuid_list(tag_ids)
     if not normalized:
         return []
 
     existing_ids = set(
         await session.exec(
-            select(TaskTag.id)
-            .where(col(TaskTag.organization_id) == organization_id)
-            .where(col(TaskTag.id).in_(normalized)),
+            select(Tag.id)
+            .where(col(Tag.organization_id) == organization_id)
+            .where(col(Tag.id).in_(normalized)),
         ),
     )
     missing = [tag_id for tag_id in normalized if tag_id not in existing_ids]
@@ -63,7 +63,7 @@ async def validate_task_tag_ids(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={
-                "message": "One or more task tags do not exist in this organization.",
+                "message": "One or more tags do not exist in this organization.",
                 "missing_tag_ids": [str(tag_id) for tag_id in missing],
             },
         )
@@ -71,18 +71,18 @@ async def validate_task_tag_ids(
 
 
 @dataclass(slots=True)
-class TaskTagState:
-    """Ordered task-tag state for a task payload."""
+class TagState:
+    """Ordered tag state for a task payload."""
 
     tag_ids: list[UUID] = field(default_factory=list)
-    tags: list[TaskTagRef] = field(default_factory=list)
+    tags: list[TagRef] = field(default_factory=list)
 
 
-async def load_task_tag_state(
+async def load_tag_state(
     session: AsyncSession,
     *,
     task_ids: Sequence[UUID],
-) -> dict[UUID, TaskTagState]:
+) -> dict[UUID, TagState]:
     """Return ordered tag IDs and refs for each task id."""
     normalized_task_ids = _dedupe_uuid_list(task_ids)
     if not normalized_task_ids:
@@ -91,25 +91,25 @@ async def load_task_tag_state(
     rows = list(
         await session.exec(
             select(
-                col(TaskTagAssignment.task_id),
-                TaskTag,
+                col(TagAssignment.task_id),
+                Tag,
             )
-            .join(TaskTag, col(TaskTag.id) == col(TaskTagAssignment.tag_id))
-            .where(col(TaskTagAssignment.task_id).in_(normalized_task_ids))
+            .join(Tag, col(Tag.id) == col(TagAssignment.tag_id))
+            .where(col(TagAssignment.task_id).in_(normalized_task_ids))
             .order_by(
-                col(TaskTagAssignment.task_id).asc(),
-                col(TaskTagAssignment.created_at).asc(),
+                col(TagAssignment.task_id).asc(),
+                col(TagAssignment.created_at).asc(),
             ),
         ),
     )
-    state_by_task_id: dict[UUID, TaskTagState] = defaultdict(TaskTagState)
+    state_by_task_id: dict[UUID, TagState] = defaultdict(TagState)
     for task_id, tag in rows:
         if task_id is None:
             continue
         state = state_by_task_id[task_id]
         state.tag_ids.append(tag.id)
         state.tags.append(
-            TaskTagRef(
+            TagRef(
                 id=tag.id,
                 name=tag.name,
                 slug=tag.slug,
@@ -119,7 +119,7 @@ async def load_task_tag_state(
     return dict(state_by_task_id)
 
 
-async def replace_task_tags(
+async def replace_tags(
     session: AsyncSession,
     *,
     task_id: UUID,
@@ -128,12 +128,12 @@ async def replace_task_tags(
     """Replace all tag-assignment rows for a task."""
     normalized = _dedupe_uuid_list(tag_ids)
     await session.exec(
-        delete(TaskTagAssignment).where(
-            col(TaskTagAssignment.task_id) == task_id,
+        delete(TagAssignment).where(
+            col(TagAssignment.task_id) == task_id,
         ),
     )
     for tag_id in normalized:
-        session.add(TaskTagAssignment(task_id=task_id, tag_id=tag_id))
+        session.add(TagAssignment(task_id=task_id, tag_id=tag_id))
 
 
 async def task_counts_for_tags(
@@ -148,11 +148,11 @@ async def task_counts_for_tags(
     rows = list(
         await session.exec(
             select(
-                col(TaskTagAssignment.tag_id),
-                func.count(col(TaskTagAssignment.task_id)),
+                col(TagAssignment.tag_id),
+                func.count(col(TagAssignment.task_id)),
             )
-            .where(col(TaskTagAssignment.tag_id).in_(normalized))
-            .group_by(col(TaskTagAssignment.tag_id)),
+            .where(col(TagAssignment.tag_id).in_(normalized))
+            .group_by(col(TagAssignment.tag_id)),
         ),
     )
     return {tag_id: int(count or 0) for tag_id, count in rows}

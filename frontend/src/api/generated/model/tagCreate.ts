@@ -6,12 +6,12 @@
  */
 
 /**
- * Payload for creating a task tag.
+ * Payload for creating a tag.
  */
-export interface TaskTagCreate {
-  color?: string;
-  description?: string | null;
+export interface TagCreate {
   /** @minLength 1 */
   name: string;
   slug?: string | null;
+  color?: string;
+  description?: string | null;
 }

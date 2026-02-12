@@ -1,4 +1,4 @@
-"""Task-tag CRUD endpoints for organization-scoped task categorization."""
+"""Tag CRUD endpoints for organization-scoped task categorization."""
 
 from __future__ import annotations
 
@@ -14,13 +14,13 @@ from app.core.time import utcnow
 from app.db import crud
 from app.db.pagination import paginate
 from app.db.session import get_session
-from app.models.task_tag_assignments import TaskTagAssignment
-from app.models.task_tags import TaskTag
+from app.models.tag_assignments import TagAssignment
+from app.models.tags import Tag
 from app.schemas.common import OkResponse
 from app.schemas.pagination import DefaultLimitOffsetPage
-from app.schemas.task_tags import TaskTagCreate, TaskTagRead, TaskTagUpdate
+from app.schemas.tags import TagCreate, TagRead, TagUpdate
 from app.services.organizations import OrganizationContext
-from app.services.task_tags import slugify_task_tag, task_counts_for_tags
+from app.services.tags import slugify_tag, task_counts_for_tags
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -36,16 +36,16 @@ ORG_ADMIN_DEP = Depends(require_org_admin)
 
 def _normalize_slug(slug: str | None, *, fallback_name: str) -> str:
     source = (slug or "").strip() or fallback_name
-    return slugify_task_tag(source)
+    return slugify_tag(source)
 
 
-async def _require_org_task_tag(
+async def _require_org_tag(
     session: AsyncSession,
     *,
     tag_id: UUID,
     ctx: OrganizationContext,
-) -> TaskTag:
-    tag = await TaskTag.objects.by_id(tag_id).first(session)
+) -> Tag:
+    tag = await Tag.objects.by_id(tag_id).first(session)
     if tag is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     if tag.organization_id != ctx.organization.id:
@@ -60,7 +60,7 @@ async def _ensure_slug_available(
     slug: str,
     exclude_tag_id: UUID | None = None,
 ) -> None:
-    existing = await TaskTag.objects.filter_by(organization_id=organization_id, slug=slug).first(
+    existing = await Tag.objects.filter_by(organization_id=organization_id, slug=slug).first(
         session
     )
     if existing is None:
@@ -69,15 +69,15 @@ async def _ensure_slug_available(
         return
     raise HTTPException(
         status_code=status.HTTP_409_CONFLICT,
-        detail="Task tag slug already exists in this organization.",
+        detail="Tag slug already exists in this organization.",
     )
 
 
 async def _tag_read_page(
     *,
     session: AsyncSession,
-    items: Sequence[TaskTag],
-) -> list[TaskTagRead]:
+    items: Sequence[Tag],
+) -> list[TagRead]:
     if not items:
         return []
     counts = await task_counts_for_tags(
@@ -85,30 +85,30 @@ async def _tag_read_page(
         tag_ids=[item.id for item in items],
     )
     return [
-        TaskTagRead.model_validate(item, from_attributes=True).model_copy(
+        TagRead.model_validate(item, from_attributes=True).model_copy(
             update={"task_count": counts.get(item.id, 0)},
         )
         for item in items
     ]
 
 
-@router.get("", response_model=DefaultLimitOffsetPage[TaskTagRead])
-async def list_task_tags(
+@router.get("", response_model=DefaultLimitOffsetPage[TagRead])
+async def list_tags(
     session: AsyncSession = SESSION_DEP,
     ctx: OrganizationContext = ORG_MEMBER_DEP,
-) -> LimitOffsetPage[TaskTagRead]:
-    """List task tags for the active organization."""
+) -> LimitOffsetPage[TagRead]:
+    """List tags for the active organization."""
     statement = (
-        select(TaskTag)
-        .where(col(TaskTag.organization_id) == ctx.organization.id)
-        .order_by(func.lower(col(TaskTag.name)).asc(), col(TaskTag.created_at).asc())
+        select(Tag)
+        .where(col(Tag.organization_id) == ctx.organization.id)
+        .order_by(func.lower(col(Tag.name)).asc(), col(Tag.created_at).asc())
     )
 
     async def _transform(items: Sequence[object]) -> Sequence[object]:
-        tags: list[TaskTag] = []
+        tags: list[Tag] = []
         for item in items:
-            if not isinstance(item, TaskTag):
-                msg = "Expected TaskTag items from paginated query"
+            if not isinstance(item, Tag):
+                msg = "Expected Tag items from paginated query"
                 raise TypeError(msg)
             tags.append(item)
         return await _tag_read_page(session=session, items=tags)
@@ -116,13 +116,13 @@ async def list_task_tags(
     return await paginate(session, statement, transformer=_transform)
 
 
-@router.post("", response_model=TaskTagRead)
-async def create_task_tag(
-    payload: TaskTagCreate,
+@router.post("", response_model=TagRead)
+async def create_tag(
+    payload: TagCreate,
     session: AsyncSession = SESSION_DEP,
     ctx: OrganizationContext = ORG_ADMIN_DEP,
-) -> TaskTagRead:
-    """Create a task tag within the active organization."""
+) -> TagRead:
+    """Create a tag within the active organization."""
     slug = _normalize_slug(payload.slug, fallback_name=payload.name)
     await _ensure_slug_available(
         session,
@@ -131,49 +131,49 @@ async def create_task_tag(
     )
     tag = await crud.create(
         session,
-        TaskTag,
+        Tag,
         organization_id=ctx.organization.id,
         name=payload.name,
         slug=slug,
         color=payload.color,
         description=payload.description,
     )
-    return TaskTagRead.model_validate(tag, from_attributes=True)
+    return TagRead.model_validate(tag, from_attributes=True)
 
 
-@router.get("/{tag_id}", response_model=TaskTagRead)
-async def get_task_tag(
+@router.get("/{tag_id}", response_model=TagRead)
+async def get_tag(
     tag_id: UUID,
     session: AsyncSession = SESSION_DEP,
     ctx: OrganizationContext = ORG_MEMBER_DEP,
-) -> TaskTagRead:
-    """Get a single task tag in the active organization."""
-    tag = await _require_org_task_tag(
+) -> TagRead:
+    """Get a single tag in the active organization."""
+    tag = await _require_org_tag(
         session,
         tag_id=tag_id,
         ctx=ctx,
     )
     count = (
         await session.exec(
-            select(func.count(col(TaskTagAssignment.task_id))).where(
-                col(TaskTagAssignment.tag_id) == tag.id,
+            select(func.count(col(TagAssignment.task_id))).where(
+                col(TagAssignment.tag_id) == tag.id,
             ),
         )
     ).one()
-    return TaskTagRead.model_validate(tag, from_attributes=True).model_copy(
+    return TagRead.model_validate(tag, from_attributes=True).model_copy(
         update={"task_count": int(count or 0)},
     )
 
 
-@router.patch("/{tag_id}", response_model=TaskTagRead)
-async def update_task_tag(
+@router.patch("/{tag_id}", response_model=TagRead)
+async def update_tag(
     tag_id: UUID,
-    payload: TaskTagUpdate,
+    payload: TagUpdate,
     session: AsyncSession = SESSION_DEP,
     ctx: OrganizationContext = ORG_ADMIN_DEP,
-) -> TaskTagRead:
-    """Update a task tag in the active organization."""
-    tag = await _require_org_task_tag(
+) -> TagRead:
+    """Update a tag in the active organization."""
+    tag = await _require_org_tag(
         session,
         tag_id=tag_id,
         ctx=ctx,
@@ -194,25 +194,25 @@ async def update_task_tag(
         )
     updates["updated_at"] = utcnow()
     updated = await crud.patch(session, tag, updates)
-    return TaskTagRead.model_validate(updated, from_attributes=True)
+    return TagRead.model_validate(updated, from_attributes=True)
 
 
 @router.delete("/{tag_id}", response_model=OkResponse)
-async def delete_task_tag(
+async def delete_tag(
     tag_id: UUID,
     session: AsyncSession = SESSION_DEP,
     ctx: OrganizationContext = ORG_ADMIN_DEP,
 ) -> OkResponse:
-    """Delete a task tag and remove all associated task-tag links."""
-    tag = await _require_org_task_tag(
+    """Delete a tag and remove all associated tag links."""
+    tag = await _require_org_tag(
         session,
         tag_id=tag_id,
         ctx=ctx,
     )
     await crud.delete_where(
         session,
-        TaskTagAssignment,
-        col(TaskTagAssignment.tag_id) == tag.id,
+        TagAssignment,
+        col(TagAssignment.tag_id) == tag.id,
         commit=False,
     )
     await session.delete(tag)

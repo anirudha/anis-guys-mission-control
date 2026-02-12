@@ -10,20 +10,20 @@ from app.api import agent as agent_api
 from app.core.agent_auth import AgentAuthContext
 from app.models.agents import Agent
 from app.models.boards import Board
-from app.models.task_tags import TaskTag
+from app.models.tags import Tag
 
 
 @dataclass
 class _FakeExecResult:
-    tags: list[TaskTag]
+    tags: list[Tag]
 
-    def all(self) -> list[TaskTag]:
+    def all(self) -> list[Tag]:
         return self.tags
 
 
 @dataclass
 class _FakeSession:
-    tags: list[TaskTag]
+    tags: list[Tag]
 
     async def exec(self, _query: object) -> _FakeExecResult:
         return _FakeExecResult(self.tags)
@@ -52,18 +52,18 @@ def _agent_ctx(*, board_id: UUID | None) -> AgentAuthContext:
 
 
 @pytest.mark.asyncio
-async def test_list_task_tags_returns_task_tag_refs() -> None:
+async def test_list_tags_returns_tag_refs() -> None:
     board = _board()
     session = _FakeSession(
         tags=[
-            TaskTag(
+            Tag(
                 id=uuid4(),
                 organization_id=board.organization_id,
                 name="Backend",
                 slug="backend",
                 color="0f172a",
             ),
-            TaskTag(
+            Tag(
                 id=uuid4(),
                 organization_id=board.organization_id,
                 name="Urgent",
@@ -73,7 +73,7 @@ async def test_list_task_tags_returns_task_tag_refs() -> None:
         ],
     )
 
-    response = await agent_api.list_task_tags(
+    response = await agent_api.list_tags(
         board=board,
         session=session,  # type: ignore[arg-type]
         agent_ctx=_agent_ctx(board_id=board.id),
@@ -85,12 +85,12 @@ async def test_list_task_tags_returns_task_tag_refs() -> None:
 
 
 @pytest.mark.asyncio
-async def test_list_task_tags_rejects_cross_board_agent() -> None:
+async def test_list_tags_rejects_cross_board_agent() -> None:
     board = _board()
     session = _FakeSession(tags=[])
 
     with pytest.raises(HTTPException) as exc:
-        await agent_api.list_task_tags(
+        await agent_api.list_tags(
             board=board,
             session=session,  # type: ignore[arg-type]
             agent_ctx=_agent_ctx(board_id=uuid4()),

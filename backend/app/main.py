@@ -24,7 +24,7 @@ from app.api.gateways import router as gateways_router
 from app.api.metrics import router as metrics_router
 from app.api.organizations import router as organizations_router
 from app.api.souls_directory import router as souls_directory_router
-from app.api.task_tags import router as task_tags_router
+from app.api.tags import router as tags_router
 from app.api.tasks import router as tasks_router
 from app.api.users import router as users_router
 from app.core.config import settings
@@ -108,7 +108,7 @@ api_v1.include_router(board_memory_router)
 api_v1.include_router(board_onboarding_router)
 api_v1.include_router(approvals_router)
 api_v1.include_router(tasks_router)
-api_v1.include_router(task_tags_router)
+api_v1.include_router(tags_router)
 api_v1.include_router(users_router)
 app.include_router(api_v1)
 

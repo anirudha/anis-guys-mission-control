@@ -10,19 +10,19 @@ import type { BoardReadSuccessMetrics } from "./boardReadSuccessMetrics";
  * Board payload returned from read endpoints.
  */
 export interface BoardRead {
-  board_group_id?: string | null;
-  board_type?: string;
-  created_at: string;
+  name: string;
+  slug: string;
   description: string;
   gateway_id?: string | null;
+  board_group_id?: string | null;
+  board_type?: string;
+  objective?: string | null;
+  success_metrics?: BoardReadSuccessMetrics;
+  target_date?: string | null;
   goal_confirmed?: boolean;
   goal_source?: string | null;
   id: string;
-  name: string;
-  objective?: string | null;
   organization_id: string;
-  slug: string;
-  success_metrics?: BoardReadSuccessMetrics;
-  target_date?: string | null;
+  created_at: string;
   updated_at: string;
 }

@@ -1,4 +1,4 @@
-"""add task tags and task-tag assignments
+"""add tags and tag assignments
 
 Revision ID: d8c1e5a4f7b2
 Revises: 99cd6df95f85, b4338be78eec
@@ -38,28 +38,28 @@ def upgrade() -> None:
             sa.UniqueConstraint(
                 "organization_id",
                 "slug",
-                name="uq_task_tags_organization_id_slug",
+                name="uq_tags_organization_id_slug",
             ),
         )
-    task_tag_indexes = {item.get("name") for item in inspector.get_indexes("tags")}
-    if op.f("ix_task_tags_organization_id") not in task_tag_indexes:
+    tag_indexes = {item.get("name") for item in inspector.get_indexes("tags")}
+    if op.f("ix_tags_organization_id") not in tag_indexes:
         op.create_index(
-            op.f("ix_task_tags_organization_id"),
+            op.f("ix_tags_organization_id"),
             "tags",
             ["organization_id"],
             unique=False,
         )
-    if op.f("ix_task_tags_slug") not in task_tag_indexes:
+    if op.f("ix_tags_slug") not in tag_indexes:
         op.create_index(
-            op.f("ix_task_tags_slug"),
+            op.f("ix_tags_slug"),
             "tags",
             ["slug"],
             unique=False,
         )
 
-    if not inspector.has_table("task_tag_assignments"):
+    if not inspector.has_table("tag_assignments"):
         op.create_table(
-            "task_tag_assignments",
+            "tag_assignments",
             sa.Column("id", sa.Uuid(), nullable=False),
             sa.Column("task_id", sa.Uuid(), nullable=False),
             sa.Column("tag_id", sa.Uuid(), nullable=False),
@@ -70,32 +70,32 @@ def upgrade() -> None:
             sa.UniqueConstraint(
                 "task_id",
                 "tag_id",
-                name="uq_task_tag_assignments_task_id_tag_id",
+                name="uq_tag_assignments_task_id_tag_id",
             ),
         )
     assignment_indexes = {
-        item.get("name") for item in inspector.get_indexes("task_tag_assignments")
+        item.get("name") for item in inspector.get_indexes("tag_assignments")
     }
-    if op.f("ix_task_tag_assignments_task_id") not in assignment_indexes:
+    if op.f("ix_tag_assignments_task_id") not in assignment_indexes:
         op.create_index(
-            op.f("ix_task_tag_assignments_task_id"),
-            "task_tag_assignments",
+            op.f("ix_tag_assignments_task_id"),
+            "tag_assignments",
             ["task_id"],
             unique=False,
         )
-    if op.f("ix_task_tag_assignments_tag_id") not in assignment_indexes:
+    if op.f("ix_tag_assignments_tag_id") not in assignment_indexes:
         op.create_index(
-            op.f("ix_task_tag_assignments_tag_id"),
-            "task_tag_assignments",
+            op.f("ix_tag_assignments_tag_id"),
+            "tag_assignments",
             ["tag_id"],
             unique=False,
         )
 
 
 def downgrade() -> None:
-    op.drop_index(op.f("ix_task_tag_assignments_tag_id"), table_name="task_tag_assignments")
-    op.drop_index(op.f("ix_task_tag_assignments_task_id"), table_name="task_tag_assignments")
-    op.drop_table("task_tag_assignments")
-    op.drop_index(op.f("ix_task_tags_slug"), table_name="tags")
-    op.drop_index(op.f("ix_task_tags_organization_id"), table_name="tags")
+    op.drop_index(op.f("ix_tag_assignments_tag_id"), table_name="tag_assignments")
+    op.drop_index(op.f("ix_tag_assignments_task_id"), table_name="tag_assignments")
+    op.drop_table("tag_assignments")
+    op.drop_index(op.f("ix_tags_slug"), table_name="tags")
+    op.drop_index(op.f("ix_tags_organization_id"), table_name="tags")
     op.drop_table("tags")

@@ -17,12 +17,12 @@ from app.schemas.boards import BoardRead
 from app.schemas.view_models import BoardSnapshot, TaskCardRead
 from app.services.approval_task_links import load_task_ids_by_approval, task_counts_for_board
 from app.services.openclaw.provisioning_db import AgentLifecycleService
+from app.services.tags import TagState, load_tag_state
 from app.services.task_dependencies import (
     blocked_by_dependency_ids,
     dependency_ids_by_task_id,
     dependency_status_by_id,
 )
-from app.services.task_tags import TaskTagState, load_task_tag_state
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -49,13 +49,13 @@ def _task_to_card(
     counts_by_task_id: dict[UUID, tuple[int, int]],
     deps_by_task_id: dict[UUID, list[UUID]],
     dependency_status_by_id_map: dict[UUID, str],
-    tag_state_by_task_id: dict[UUID, TaskTagState],
+    tag_state_by_task_id: dict[UUID, TagState],
 ) -> TaskCardRead:
     card = TaskCardRead.model_validate(task, from_attributes=True)
     approvals_count, approvals_pending_count = counts_by_task_id.get(task.id, (0, 0))
     assignee = agent_name_by_id.get(task.assigned_agent_id) if task.assigned_agent_id else None
     depends_on_task_ids = deps_by_task_id.get(task.id, [])
-    tag_state = tag_state_by_task_id.get(task.id, TaskTagState())
+    tag_state = tag_state_by_task_id.get(task.id, TagState())
     blocked_by_task_ids = blocked_by_dependency_ids(
         dependency_ids=depends_on_task_ids,
         status_by_id=dependency_status_by_id_map,
@@ -86,7 +86,7 @@ async def build_board_snapshot(session: AsyncSession, board: Board) -> BoardSnap
         .all(session),
     )
     task_ids = [task.id for task in tasks]
-    tag_state_by_task_id = await load_task_tag_state(
+    tag_state_by_task_id = await load_tag_state(
         session,
         task_ids=task_ids,
     )

@@ -1,4 +1,4 @@
-"""Schemas for task-tag CRUD payloads."""
+"""Schemas for tag CRUD payloads."""
 
 from __future__ import annotations
 
@@ -27,8 +27,8 @@ def _normalize_color(value: str | None) -> str | None:
     return cleaned
 
 
-class TaskTagBase(SQLModel):
-    """Shared task-tag fields for create/read payloads."""
+class TagBase(SQLModel):
+    """Shared tag fields for create/read payloads."""
 
     name: str
     slug: str
@@ -36,8 +36,8 @@ class TaskTagBase(SQLModel):
     description: str | None = None
 
 
-class TaskTagRef(SQLModel):
-    """Compact task-tag representation embedded in task payloads."""
+class TagRef(SQLModel):
+    """Compact tag representation embedded in task payloads."""
 
     id: UUID
     name: str
@@ -45,8 +45,8 @@ class TaskTagRef(SQLModel):
     color: str
 
 
-class TaskTagCreate(SQLModel):
-    """Payload for creating a task tag."""
+class TagCreate(SQLModel):
+    """Payload for creating a tag."""
 
     name: NonEmptyStr
     slug: str | None = None
@@ -76,8 +76,8 @@ class TaskTagCreate(SQLModel):
         return value
 
 
-class TaskTagUpdate(SQLModel):
-    """Payload for partial task-tag updates."""
+class TagUpdate(SQLModel):
+    """Payload for partial tag updates."""
 
     name: NonEmptyStr | None = None
     slug: str | None = None
@@ -116,8 +116,8 @@ class TaskTagUpdate(SQLModel):
         return self
 
 
-class TaskTagRead(TaskTagBase):
-    """Task-tag payload returned from API endpoints."""
+class TagRead(TagBase):
+    """Tag payload returned from API endpoints."""
 
     id: UUID
     organization_id: UUID

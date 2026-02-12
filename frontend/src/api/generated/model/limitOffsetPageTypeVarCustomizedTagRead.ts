@@ -4,14 +4,14 @@
  * Mission Control API
  * OpenAPI spec version: 0.1.0
  */
-import type { TaskTagRead } from "./taskTagRead";
+import type { TagRead } from "./tagRead";
 
-export interface LimitOffsetPageTypeVarCustomizedTaskTagRead {
-  items: TaskTagRead[];
+export interface LimitOffsetPageTypeVarCustomizedTagRead {
+  items: TagRead[];
+  /** @minimum 0 */
+  total: number;
   /** @minimum 1 */
   limit: number;
   /** @minimum 0 */
   offset: number;
-  /** @minimum 0 */
-  total: number;
 }

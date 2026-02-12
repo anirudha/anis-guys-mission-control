@@ -9,15 +9,15 @@ import { useAuth } from "@/auth/clerk";
 
 import { ApiError } from "@/api/mutator";
 import {
-  type getTaskTagApiV1TagsTagIdGetResponse,
-  useGetTaskTagApiV1TagsTagIdGet,
-  useUpdateTaskTagApiV1TagsTagIdPatch,
+  type getTagApiV1TagsTagIdGetResponse,
+  useGetTagApiV1TagsTagIdGet,
+  useUpdateTagApiV1TagsTagIdPatch,
 } from "@/api/generated/tags/tags";
-import { TaskTagForm } from "@/components/tags/TaskTagForm";
+import { TagForm } from "@/components/tags/TagForm";
 import { DashboardPageLayout } from "@/components/templates/DashboardPageLayout";
 import { useOrganizationMembership } from "@/lib/use-organization-membership";
 
-export default function EditTaskTagPage() {
+export default function EditTagPage() {
   const router = useRouter();
   const params = useParams();
   const tagIdParam = params?.tagId;
@@ -25,8 +25,8 @@ export default function EditTaskTagPage() {
   const { isSignedIn } = useAuth();
   const { isAdmin } = useOrganizationMembership(isSignedIn);
 
-  const tagQuery = useGetTaskTagApiV1TagsTagIdGet<
-    getTaskTagApiV1TagsTagIdGetResponse,
+  const tagQuery = useGetTagApiV1TagsTagIdGet<
+    getTagApiV1TagsTagIdGetResponse,
     ApiError
   >(tagId ?? "", {
     query: {
@@ -36,7 +36,7 @@ export default function EditTaskTagPage() {
     },
   });
 
-  const updateMutation = useUpdateTaskTagApiV1TagsTagIdPatch<ApiError>({
+  const updateMutation = useUpdateTagApiV1TagsTagIdPatch<ApiError>({
     mutation: {
       retry: false,
     },
@@ -72,7 +72,7 @@ export default function EditTaskTagPage() {
           Tag not found.
         </div>
       ) : (
-        <TaskTagForm
+        <TagForm
           initialValues={{
             name: tag.name,
             slug: tag.slug,

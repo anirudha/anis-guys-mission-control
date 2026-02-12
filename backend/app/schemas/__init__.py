@@ -31,7 +31,7 @@ from app.schemas.souls_directory import (
     SoulsDirectorySearchResponse,
     SoulsDirectorySoulRef,
 )
-from app.schemas.task_tags import TaskTagCreate, TaskTagRead, TaskTagRef, TaskTagUpdate
+from app.schemas.tags import TagCreate, TagRead, TagRef, TagUpdate
 from app.schemas.tasks import TaskCreate, TaskRead, TaskUpdate
 from app.schemas.users import UserCreate, UserRead, UserUpdate
 
@@ -71,10 +71,10 @@ __all__ = [
     "SoulsDirectoryMarkdownResponse",
     "SoulsDirectorySearchResponse",
     "SoulsDirectorySoulRef",
-    "TaskTagCreate",
-    "TaskTagRead",
-    "TaskTagRef",
-    "TaskTagUpdate",
+    "TagCreate",
+    "TagRead",
+    "TagRef",
+    "TagUpdate",
     "TaskCreate",
     "TaskRead",
     "TaskUpdate",

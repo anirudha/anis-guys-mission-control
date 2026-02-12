@@ -7,8 +7,8 @@ from uuid import uuid4
 
 import pytest
 
-from app.models.task_tags import TaskTag
-from app.services import task_tags
+from app.models.tags import Tag
+from app.services import tags
 
 
 @dataclass
@@ -27,18 +27,18 @@ class _FakeSession:
         self.added.append(value)
 
 
-def test_slugify_task_tag_normalizes_text():
-    assert task_tags.slugify_task_tag("Release / QA") == "release-qa"
-    assert task_tags.slugify_task_tag("  ###  ") == "tag"
+def test_slugify_tag_normalizes_text():
+    assert tags.slugify_tag("Release / QA") == "release-qa"
+    assert tags.slugify_tag("  ###  ") == "tag"
 
 
 @pytest.mark.asyncio
-async def test_validate_task_tag_ids_dedupes_and_preserves_order():
+async def test_validate_tag_ids_dedupes_and_preserves_order():
     org_id = uuid4()
     tag_a = uuid4()
     tag_b = uuid4()
     session = _FakeSession(exec_results=[{tag_a, tag_b}])
-    result = await task_tags.validate_task_tag_ids(
+    result = await tags.validate_tag_ids(
         session,
         organization_id=org_id,
         tag_ids=[tag_a, tag_b, tag_a],
@@ -47,13 +47,13 @@ async def test_validate_task_tag_ids_dedupes_and_preserves_order():
 
 
 @pytest.mark.asyncio
-async def test_validate_task_tag_ids_rejects_missing_tags():
+async def test_validate_tag_ids_rejects_missing_tags():
     org_id = uuid4()
     tag_a = uuid4()
     missing = uuid4()
     session = _FakeSession(exec_results=[{tag_a}])
-    with pytest.raises(task_tags.HTTPException) as exc:
-        await task_tags.validate_task_tag_ids(
+    with pytest.raises(tags.HTTPException) as exc:
+        await tags.validate_tag_ids(
             session,
             organization_id=org_id,
             tag_ids=[tag_a, missing],
@@ -63,7 +63,7 @@ async def test_validate_task_tag_ids_rejects_missing_tags():
 
 
 @pytest.mark.asyncio
-async def test_load_task_tag_state_groups_rows_by_task_id():
+async def test_load_tag_state_groups_rows_by_task_id():
     task_a = uuid4()
     task_b = uuid4()
     tag_a = uuid4()
@@ -73,7 +73,7 @@ async def test_load_task_tag_state_groups_rows_by_task_id():
             [
                 (
                     task_a,
-                    TaskTag(
+                    Tag(
                         id=tag_a,
                         organization_id=uuid4(),
                         name="Backend",
@@ -83,7 +83,7 @@ async def test_load_task_tag_state_groups_rows_by_task_id():
                 ),
                 (
                     task_a,
-                    TaskTag(
+                    Tag(
                         id=tag_b,
                         organization_id=uuid4(),
                         name="Urgent",
@@ -93,7 +93,7 @@ async def test_load_task_tag_state_groups_rows_by_task_id():
                 ),
                 (
                     task_b,
-                    TaskTag(
+                    Tag(
                         id=tag_b,
                         organization_id=uuid4(),
                         name="Urgent",
@@ -104,7 +104,7 @@ async def test_load_task_tag_state_groups_rows_by_task_id():
             ],
         ],
     )
-    state = await task_tags.load_task_tag_state(
+    state = await tags.load_tag_state(
         session,
         task_ids=[task_a, task_b],
     )
@@ -114,12 +114,12 @@ async def test_load_task_tag_state_groups_rows_by_task_id():
 
 
 @pytest.mark.asyncio
-async def test_replace_task_tags_replaces_existing_links():
+async def test_replace_tags_replaces_existing_links():
     task_id = uuid4()
     tag_a = uuid4()
     tag_b = uuid4()
     session = _FakeSession(exec_results=[None])
-    await task_tags.replace_task_tags(
+    await tags.replace_tags(
         session,
         task_id=task_id,
         tag_ids=[tag_a, tag_b, tag_a],

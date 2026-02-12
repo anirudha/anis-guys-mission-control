@@ -5,15 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-export type TaskTagFormValues = {
+export type TagFormValues = {
   name: string;
   slug: string;
   color: string;
   description: string;
 };
 
-type TaskTagFormProps = {
-  initialValues?: TaskTagFormValues;
+type TagFormProps = {
+  initialValues?: TagFormValues;
   onSubmit: (values: {
     name: string;
     slug: string;
@@ -26,7 +26,7 @@ type TaskTagFormProps = {
   isSubmitting: boolean;
 };
 
-const DEFAULT_VALUES: TaskTagFormValues = {
+const DEFAULT_VALUES: TagFormValues = {
   name: "",
   slug: "",
   color: "9e9e9e",
@@ -51,14 +51,14 @@ const extractErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
-export function TaskTagForm({
+export function TagForm({
   initialValues,
   onSubmit,
   onCancel,
   submitLabel,
   submittingLabel,
   isSubmitting,
-}: TaskTagFormProps) {
+}: TagFormProps) {
   const resolvedInitial = initialValues ?? DEFAULT_VALUES;
   const [name, setName] = useState(() => resolvedInitial.name);
   const [slug, setSlug] = useState(() => resolvedInitial.slug);

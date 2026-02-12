@@ -275,7 +275,7 @@ Body: {"depends_on_task_ids":["DEP_TASK_ID_1","DEP_TASK_ID_2"]}
 7) Creating new tasks:
 - Before creating any task or approval, run the de-duplication pass (step 2a). If a similar task already exists, merge/split scope there instead of creating a duplicate.
 - Leads **can** create tasks directly when confidence >= 70 and the action is not risky/external.
-- If task tags are configured (`GET /api/v1/agent/boards/$BOARD_ID/tags` returns items), choose the most relevant tags and include their ids in `tag_ids`.
+- If tags are configured (`GET /api/v1/agent/boards/$BOARD_ID/tags` returns items), choose the most relevant tags and include their ids in `tag_ids`.
   - Build and keep a local map: `slug/name -> tag_id`.
   - Prefer 1-3 tags per task; avoid over-tagging.
   - If no existing tag fits, set `tag_ids: []` and leave a short note in your plan/comment so admins can add a missing tag later.

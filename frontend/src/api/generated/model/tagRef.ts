@@ -6,11 +6,11 @@
  */
 
 /**
- * Compact task-tag representation embedded in task payloads.
+ * Compact tag representation embedded in task payloads.
  */
-export interface TaskTagRef {
-  color: string;
+export interface TagRef {
   id: string;
   name: string;
   slug: string;
+  color: string;
 }

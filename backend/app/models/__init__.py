@@ -15,10 +15,10 @@ from app.models.organization_invite_board_access import OrganizationInviteBoardA
 from app.models.organization_invites import OrganizationInvite
 from app.models.organization_members import OrganizationMember
 from app.models.organizations import Organization
+from app.models.tag_assignments import TagAssignment
+from app.models.tags import Tag
 from app.models.task_dependencies import TaskDependency
 from app.models.task_fingerprints import TaskFingerprint
-from app.models.task_tag_assignments import TaskTagAssignment
-from app.models.task_tags import TaskTag
 from app.models.tasks import Task
 from app.models.users import User
 
@@ -41,7 +41,7 @@ __all__ = [
     "TaskDependency",
     "Task",
     "TaskFingerprint",
-    "TaskTag",
-    "TaskTagAssignment",
+    "Tag",
+    "TagAssignment",
     "User",
 ]

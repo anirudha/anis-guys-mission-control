@@ -21,7 +21,7 @@ from app.schemas.view_models import (
     BoardGroupSnapshot,
     BoardGroupTaskSummary,
 )
-from app.services.task_tags import TaskTagState, load_task_tag_state
+from app.services.tags import TagState, load_tag_state
 
 if TYPE_CHECKING:
     from sqlalchemy.sql.elements import ColumnElement
@@ -123,7 +123,7 @@ def _task_summaries_by_board(
     boards_by_id: dict[UUID, Board],
     tasks: list[Task],
     agent_name_by_id: dict[UUID, str],
-    tag_state_by_task_id: dict[UUID, TaskTagState],
+    tag_state_by_task_id: dict[UUID, TagState],
     per_board_task_limit: int,
 ) -> dict[UUID, list[BoardGroupTaskSummary]]:
     """Build limited per-board task summary lists."""
@@ -156,7 +156,7 @@ def _task_summaries_by_board(
                 ),
                 due_at=task.due_at,
                 in_progress_at=task.in_progress_at,
-                tags=tag_state_by_task_id.get(task.id, TaskTagState()).tags,
+                tags=tag_state_by_task_id.get(task.id, TagState()).tags,
                 created_at=task.created_at,
                 updated_at=task.updated_at,
             ),
@@ -191,7 +191,7 @@ async def build_group_snapshot(
         include_done=include_done,
     )
     agent_name_by_id = await _agent_names(session, tasks)
-    tag_state_by_task_id = await load_task_tag_state(
+    tag_state_by_task_id = await load_tag_state(
         session,
         task_ids=[task.id for task in tasks],
     )

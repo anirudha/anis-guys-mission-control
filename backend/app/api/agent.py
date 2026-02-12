@@ -20,8 +20,8 @@ from app.db.pagination import paginate
 from app.db.session import get_session
 from app.models.agents import Agent
 from app.models.boards import Board
+from app.models.tags import Tag
 from app.models.task_dependencies import TaskDependency
-from app.models.task_tags import TaskTag
 from app.models.tasks import Task
 from app.schemas.agents import (
     AgentCreate,
@@ -44,18 +44,18 @@ from app.schemas.gateway_coordination import (
     GatewayMainAskUserResponse,
 )
 from app.schemas.pagination import DefaultLimitOffsetPage
-from app.schemas.task_tags import TaskTagRef
+from app.schemas.tags import TagRef
 from app.schemas.tasks import TaskCommentCreate, TaskCommentRead, TaskCreate, TaskRead, TaskUpdate
 from app.services.activity_log import record_activity
 from app.services.openclaw.coordination_service import GatewayCoordinationService
 from app.services.openclaw.policies import OpenClawAuthorizationPolicy
 from app.services.openclaw.provisioning_db import AgentLifecycleService
+from app.services.tags import replace_tags, validate_tag_ids
 from app.services.task_dependencies import (
     blocked_by_dependency_ids,
     dependency_status_by_id,
     validate_dependency_update,
 )
-from app.services.task_tags import replace_task_tags, validate_task_tag_ids
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -214,23 +214,23 @@ async def list_tasks(
     )
 
 
-@router.get("/boards/{board_id}/tags", response_model=list[TaskTagRef])
-async def list_task_tags(
+@router.get("/boards/{board_id}/tags", response_model=list[TagRef])
+async def list_tags(
     board: Board = BOARD_DEP,
     session: AsyncSession = SESSION_DEP,
     agent_ctx: AgentAuthContext = AGENT_CTX_DEP,
-) -> list[TaskTagRef]:
-    """List task tags available to the board's organization."""
+) -> list[TagRef]:
+    """List tags available to the board's organization."""
     _guard_board_access(agent_ctx, board)
     tags = (
         await session.exec(
-            select(TaskTag)
-            .where(col(TaskTag.organization_id) == board.organization_id)
-            .order_by(func.lower(col(TaskTag.name)).asc(), col(TaskTag.created_at).asc()),
+            select(Tag)
+            .where(col(Tag.organization_id) == board.organization_id)
+            .order_by(func.lower(col(Tag.name)).asc(), col(Tag.created_at).asc()),
         )
     ).all()
     return [
-        TaskTagRef(
+        TagRef(
             id=tag.id,
             name=tag.name,
             slug=tag.slug,
@@ -265,7 +265,7 @@ async def create_task(
         task_id=task.id,
         depends_on_task_ids=depends_on_task_ids,
     )
-    normalized_tag_ids = await validate_task_tag_ids(
+    normalized_tag_ids = await validate_tag_ids(
         session,
         organization_id=board.organization_id,
         tag_ids=tag_ids,
@@ -310,7 +310,7 @@ async def create_task(
                 depends_on_task_id=dep_id,
             ),
         )
-    await replace_task_tags(
+    await replace_tags(
         session,
         task_id=task.id,
         tag_ids=normalized_tag_ids,

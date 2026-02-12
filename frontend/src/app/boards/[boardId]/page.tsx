@@ -75,8 +75,8 @@ import {
   updateTaskApiV1BoardsBoardIdTasksTaskIdPatch,
 } from "@/api/generated/tasks/tasks";
 import {
-  type listTaskTagsApiV1TagsGetResponse,
-  useListTaskTagsApiV1TagsGet,
+  type listTagsApiV1TagsGetResponse,
+  useListTagsApiV1TagsGet,
 } from "@/api/generated/tags/tags";
 import type {
   AgentRead,
@@ -88,7 +88,7 @@ import type {
   OrganizationMemberRead,
   TaskCardRead,
   TaskCommentRead,
-  TaskTagRead,
+  TagRead,
   TaskRead,
 } from "@/api/generated/model";
 import { createExponentialBackoff } from "@/lib/backoff";
@@ -679,8 +679,8 @@ export default function BoardDetailPage() {
       refetchOnMount: "always",
     },
   });
-  const taskTagsQuery = useListTaskTagsApiV1TagsGet<
-    listTaskTagsApiV1TagsGetResponse,
+  const tagsQuery = useListTagsApiV1TagsGet<
+    listTagsApiV1TagsGetResponse,
     ApiError
   >(undefined, {
     query: {
@@ -688,12 +688,10 @@ export default function BoardDetailPage() {
       refetchOnMount: "always",
     },
   });
-  const taskTags = useMemo(
+  const tags = useMemo(
     () =>
-      taskTagsQuery.data?.status === 200
-        ? (taskTagsQuery.data.data.items ?? [])
-        : [],
-    [taskTagsQuery.data],
+      tagsQuery.data?.status === 200 ? (tagsQuery.data.data.items ?? []) : [],
+    [tagsQuery.data],
   );
 
   const boardAccess = useMemo(
@@ -1976,31 +1974,31 @@ export default function BoardDetailPage() {
     [agents],
   );
 
-  const taskTagById = useMemo(() => {
-    const map = new Map<string, TaskTagRead>();
-    taskTags.forEach((tag) => {
+  const tagById = useMemo(() => {
+    const map = new Map<string, TagRead>();
+    tags.forEach((tag) => {
       map.set(tag.id, tag);
     });
     return map;
-  }, [taskTags]);
+  }, [tags]);
 
   const createTagOptions = useMemo<DropdownSelectOption[]>(() => {
     const selected = new Set(createTagIds);
-    return taskTags.map((tag) => ({
+    return tags.map((tag) => ({
       value: tag.id,
       label: `${tag.name} (#${normalizeTagColor(tag.color).toUpperCase()})`,
       disabled: selected.has(tag.id),
     }));
-  }, [createTagIds, taskTags]);
+  }, [createTagIds, tags]);
 
   const editTagOptions = useMemo<DropdownSelectOption[]>(() => {
     const selected = new Set(editTagIds);
-    return taskTags.map((tag) => ({
+    return tags.map((tag) => ({
       value: tag.id,
       label: `${tag.name} (#${normalizeTagColor(tag.color).toUpperCase()})`,
       disabled: selected.has(tag.id),
     }));
-  }, [editTagIds, taskTags]);
+  }, [editTagIds, tags]);
 
   const dependencyOptions = useMemo<DropdownSelectOption[]>(() => {
     if (!selectedTask) return [];
@@ -3861,7 +3859,7 @@ export default function BoardDetailPage() {
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {editTagIds.map((tagId) => {
-                    const tag = taskTagById.get(tagId);
+                    const tag = tagById.get(tagId);
                     const label = tag?.name ?? tagId;
                     const color = normalizeTagColor(tag?.color);
                     return (
@@ -4118,7 +4116,7 @@ export default function BoardDetailPage() {
               {createTagIds.length ? (
                 <div className="flex flex-wrap gap-2">
                   {createTagIds.map((tagId) => {
-                    const tag = taskTagById.get(tagId);
+                    const tag = tagById.get(tagId);
                     const color = normalizeTagColor(tag?.color);
                     return (
                       <span

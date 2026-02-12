@@ -13,11 +13,11 @@ import type { ApprovalCreateStatus } from "./approvalCreateStatus";
  */
 export interface ApprovalCreate {
   action_type: string;
-  agent_id?: string | null;
-  confidence: number;
-  payload?: ApprovalCreatePayload;
-  rubric_scores?: ApprovalCreateRubricScores;
-  status?: ApprovalCreateStatus;
   task_id?: string | null;
   task_ids?: string[];
+  payload?: ApprovalCreatePayload;
+  confidence: number;
+  rubric_scores?: ApprovalCreateRubricScores;
+  status?: ApprovalCreateStatus;
+  agent_id?: string | null;
 }

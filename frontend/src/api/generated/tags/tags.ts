@@ -22,12 +22,12 @@ import type {
 
 import type {
   HTTPValidationError,
-  LimitOffsetPageTypeVarCustomizedTaskTagRead,
-  ListTaskTagsApiV1TagsGetParams,
+  LimitOffsetPageTypeVarCustomizedTagRead,
+  ListTagsApiV1TagsGetParams,
   OkResponse,
-  TaskTagCreate,
-  TaskTagRead,
-  TaskTagUpdate,
+  TagCreate,
+  TagRead,
+  TagUpdate,
 } from ".././model";
 
 import { customFetch } from "../../mutator";
@@ -35,34 +35,34 @@ import { customFetch } from "../../mutator";
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * List task tags for the active organization.
- * @summary List Task Tags
+ * List tags for the active organization.
+ * @summary List Tags
  */
-export type listTaskTagsApiV1TagsGetResponse200 = {
-  data: LimitOffsetPageTypeVarCustomizedTaskTagRead;
+export type listTagsApiV1TagsGetResponse200 = {
+  data: LimitOffsetPageTypeVarCustomizedTagRead;
   status: 200;
 };
 
-export type listTaskTagsApiV1TagsGetResponse422 = {
+export type listTagsApiV1TagsGetResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type listTaskTagsApiV1TagsGetResponseSuccess =
-  listTaskTagsApiV1TagsGetResponse200 & {
+export type listTagsApiV1TagsGetResponseSuccess =
+  listTagsApiV1TagsGetResponse200 & {
     headers: Headers;
   };
-export type listTaskTagsApiV1TagsGetResponseError =
-  listTaskTagsApiV1TagsGetResponse422 & {
+export type listTagsApiV1TagsGetResponseError =
+  listTagsApiV1TagsGetResponse422 & {
     headers: Headers;
   };
 
-export type listTaskTagsApiV1TagsGetResponse =
-  | listTaskTagsApiV1TagsGetResponseSuccess
-  | listTaskTagsApiV1TagsGetResponseError;
+export type listTagsApiV1TagsGetResponse =
+  | listTagsApiV1TagsGetResponseSuccess
+  | listTagsApiV1TagsGetResponseError;
 
-export const getListTaskTagsApiV1TagsGetUrl = (
-  params?: ListTaskTagsApiV1TagsGetParams,
+export const getListTagsApiV1TagsGetUrl = (
+  params?: ListTagsApiV1TagsGetParams,
 ) => {
   const normalizedParams = new URLSearchParams();
 
@@ -79,12 +79,12 @@ export const getListTaskTagsApiV1TagsGetUrl = (
     : `/api/v1/tags`;
 };
 
-export const listTaskTagsApiV1TagsGet = async (
-  params?: ListTaskTagsApiV1TagsGetParams,
+export const listTagsApiV1TagsGet = async (
+  params?: ListTagsApiV1TagsGetParams,
   options?: RequestInit,
-): Promise<listTaskTagsApiV1TagsGetResponse> => {
-  return customFetch<listTaskTagsApiV1TagsGetResponse>(
-    getListTaskTagsApiV1TagsGetUrl(params),
+): Promise<listTagsApiV1TagsGetResponse> => {
+  return customFetch<listTagsApiV1TagsGetResponse>(
+    getListTagsApiV1TagsGetUrl(params),
     {
       ...options,
       method: "GET",
@@ -92,21 +92,21 @@ export const listTaskTagsApiV1TagsGet = async (
   );
 };
 
-export const getListTaskTagsApiV1TagsGetQueryKey = (
-  params?: ListTaskTagsApiV1TagsGetParams,
+export const getListTagsApiV1TagsGetQueryKey = (
+  params?: ListTagsApiV1TagsGetParams,
 ) => {
   return [`/api/v1/tags`, ...(params ? [params] : [])] as const;
 };
 
-export const getListTaskTagsApiV1TagsGetQueryOptions = <
-  TData = Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>,
+export const getListTagsApiV1TagsGetQueryOptions = <
+  TData = Awaited<ReturnType<typeof listTagsApiV1TagsGet>>,
   TError = HTTPValidationError,
 >(
-  params?: ListTaskTagsApiV1TagsGetParams,
+  params?: ListTagsApiV1TagsGetParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>,
+        Awaited<ReturnType<typeof listTagsApiV1TagsGet>>,
         TError,
         TData
       >
@@ -117,43 +117,43 @@ export const getListTaskTagsApiV1TagsGetQueryOptions = <
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ?? getListTaskTagsApiV1TagsGetQueryKey(params);
+    queryOptions?.queryKey ?? getListTagsApiV1TagsGetQueryKey(params);
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>
+    Awaited<ReturnType<typeof listTagsApiV1TagsGet>>
   > = ({ signal }) =>
-    listTaskTagsApiV1TagsGet(params, { signal, ...requestOptions });
+    listTagsApiV1TagsGet(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>,
+    Awaited<ReturnType<typeof listTagsApiV1TagsGet>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type ListTaskTagsApiV1TagsGetQueryResult = NonNullable<
-  Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>
+export type ListTagsApiV1TagsGetQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listTagsApiV1TagsGet>>
 >;
-export type ListTaskTagsApiV1TagsGetQueryError = HTTPValidationError;
+export type ListTagsApiV1TagsGetQueryError = HTTPValidationError;
 
-export function useListTaskTagsApiV1TagsGet<
-  TData = Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>,
+export function useListTagsApiV1TagsGet<
+  TData = Awaited<ReturnType<typeof listTagsApiV1TagsGet>>,
   TError = HTTPValidationError,
 >(
-  params: undefined | ListTaskTagsApiV1TagsGetParams,
+  params: undefined | ListTagsApiV1TagsGetParams,
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>,
+        Awaited<ReturnType<typeof listTagsApiV1TagsGet>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>,
+          Awaited<ReturnType<typeof listTagsApiV1TagsGet>>,
           TError,
-          Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>
+          Awaited<ReturnType<typeof listTagsApiV1TagsGet>>
         >,
         "initialData"
       >;
@@ -163,24 +163,24 @@ export function useListTaskTagsApiV1TagsGet<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useListTaskTagsApiV1TagsGet<
-  TData = Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>,
+export function useListTagsApiV1TagsGet<
+  TData = Awaited<ReturnType<typeof listTagsApiV1TagsGet>>,
   TError = HTTPValidationError,
 >(
-  params?: ListTaskTagsApiV1TagsGetParams,
+  params?: ListTagsApiV1TagsGetParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>,
+        Awaited<ReturnType<typeof listTagsApiV1TagsGet>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>,
+          Awaited<ReturnType<typeof listTagsApiV1TagsGet>>,
           TError,
-          Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>
+          Awaited<ReturnType<typeof listTagsApiV1TagsGet>>
         >,
         "initialData"
       >;
@@ -190,15 +190,15 @@ export function useListTaskTagsApiV1TagsGet<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useListTaskTagsApiV1TagsGet<
-  TData = Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>,
+export function useListTagsApiV1TagsGet<
+  TData = Awaited<ReturnType<typeof listTagsApiV1TagsGet>>,
   TError = HTTPValidationError,
 >(
-  params?: ListTaskTagsApiV1TagsGetParams,
+  params?: ListTagsApiV1TagsGetParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>,
+        Awaited<ReturnType<typeof listTagsApiV1TagsGet>>,
         TError,
         TData
       >
@@ -210,18 +210,18 @@ export function useListTaskTagsApiV1TagsGet<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary List Task Tags
+ * @summary List Tags
  */
 
-export function useListTaskTagsApiV1TagsGet<
-  TData = Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>,
+export function useListTagsApiV1TagsGet<
+  TData = Awaited<ReturnType<typeof listTagsApiV1TagsGet>>,
   TError = HTTPValidationError,
 >(
-  params?: ListTaskTagsApiV1TagsGetParams,
+  params?: ListTagsApiV1TagsGetParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listTaskTagsApiV1TagsGet>>,
+        Awaited<ReturnType<typeof listTagsApiV1TagsGet>>,
         TError,
         TData
       >
@@ -232,7 +232,7 @@ export function useListTaskTagsApiV1TagsGet<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getListTaskTagsApiV1TagsGetQueryOptions(params, options);
+  const queryOptions = getListTagsApiV1TagsGetQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -243,69 +243,69 @@ export function useListTaskTagsApiV1TagsGet<
 }
 
 /**
- * Create a task tag within the active organization.
- * @summary Create Task Tag
+ * Create a tag within the active organization.
+ * @summary Create Tag
  */
-export type createTaskTagApiV1TagsPostResponse200 = {
-  data: TaskTagRead;
+export type createTagApiV1TagsPostResponse200 = {
+  data: TagRead;
   status: 200;
 };
 
-export type createTaskTagApiV1TagsPostResponse422 = {
+export type createTagApiV1TagsPostResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type createTaskTagApiV1TagsPostResponseSuccess =
-  createTaskTagApiV1TagsPostResponse200 & {
+export type createTagApiV1TagsPostResponseSuccess =
+  createTagApiV1TagsPostResponse200 & {
     headers: Headers;
   };
-export type createTaskTagApiV1TagsPostResponseError =
-  createTaskTagApiV1TagsPostResponse422 & {
+export type createTagApiV1TagsPostResponseError =
+  createTagApiV1TagsPostResponse422 & {
     headers: Headers;
   };
 
-export type createTaskTagApiV1TagsPostResponse =
-  | createTaskTagApiV1TagsPostResponseSuccess
-  | createTaskTagApiV1TagsPostResponseError;
+export type createTagApiV1TagsPostResponse =
+  | createTagApiV1TagsPostResponseSuccess
+  | createTagApiV1TagsPostResponseError;
 
-export const getCreateTaskTagApiV1TagsPostUrl = () => {
+export const getCreateTagApiV1TagsPostUrl = () => {
   return `/api/v1/tags`;
 };
 
-export const createTaskTagApiV1TagsPost = async (
-  taskTagCreate: TaskTagCreate,
+export const createTagApiV1TagsPost = async (
+  tagCreate: TagCreate,
   options?: RequestInit,
-): Promise<createTaskTagApiV1TagsPostResponse> => {
-  return customFetch<createTaskTagApiV1TagsPostResponse>(
-    getCreateTaskTagApiV1TagsPostUrl(),
+): Promise<createTagApiV1TagsPostResponse> => {
+  return customFetch<createTagApiV1TagsPostResponse>(
+    getCreateTagApiV1TagsPostUrl(),
     {
       ...options,
       method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(taskTagCreate),
+      body: JSON.stringify(tagCreate),
     },
   );
 };
 
-export const getCreateTaskTagApiV1TagsPostMutationOptions = <
+export const getCreateTagApiV1TagsPostMutationOptions = <
   TError = HTTPValidationError,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof createTaskTagApiV1TagsPost>>,
+    Awaited<ReturnType<typeof createTagApiV1TagsPost>>,
     TError,
-    { data: TaskTagCreate },
+    { data: TagCreate },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof createTaskTagApiV1TagsPost>>,
+  Awaited<ReturnType<typeof createTagApiV1TagsPost>>,
   TError,
-  { data: TaskTagCreate },
+  { data: TagCreate },
   TContext
 > => {
-  const mutationKey = ["createTaskTagApiV1TagsPost"];
+  const mutationKey = ["createTagApiV1TagsPost"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -315,88 +315,404 @@ export const getCreateTaskTagApiV1TagsPostMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof createTaskTagApiV1TagsPost>>,
-    { data: TaskTagCreate }
+    Awaited<ReturnType<typeof createTagApiV1TagsPost>>,
+    { data: TagCreate }
   > = (props) => {
     const { data } = props ?? {};
 
-    return createTaskTagApiV1TagsPost(data, requestOptions);
+    return createTagApiV1TagsPost(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type CreateTaskTagApiV1TagsPostMutationResult = NonNullable<
-  Awaited<ReturnType<typeof createTaskTagApiV1TagsPost>>
+export type CreateTagApiV1TagsPostMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createTagApiV1TagsPost>>
 >;
-export type CreateTaskTagApiV1TagsPostMutationBody = TaskTagCreate;
-export type CreateTaskTagApiV1TagsPostMutationError = HTTPValidationError;
+export type CreateTagApiV1TagsPostMutationBody = TagCreate;
+export type CreateTagApiV1TagsPostMutationError = HTTPValidationError;
 
 /**
- * @summary Create Task Tag
+ * @summary Create Tag
  */
-export const useCreateTaskTagApiV1TagsPost = <
+export const useCreateTagApiV1TagsPost = <
   TError = HTTPValidationError,
   TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof createTaskTagApiV1TagsPost>>,
+      Awaited<ReturnType<typeof createTagApiV1TagsPost>>,
       TError,
-      { data: TaskTagCreate },
+      { data: TagCreate },
       TContext
     >;
     request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof createTaskTagApiV1TagsPost>>,
+  Awaited<ReturnType<typeof createTagApiV1TagsPost>>,
   TError,
-  { data: TaskTagCreate },
+  { data: TagCreate },
   TContext
 > => {
   return useMutation(
-    getCreateTaskTagApiV1TagsPostMutationOptions(options),
+    getCreateTagApiV1TagsPostMutationOptions(options),
     queryClient,
   );
 };
 /**
- * Delete a task tag and remove all associated task-tag links.
- * @summary Delete Task Tag
+ * Get a single tag in the active organization.
+ * @summary Get Tag
  */
-export type deleteTaskTagApiV1TagsTagIdDeleteResponse200 = {
-  data: OkResponse;
+export type getTagApiV1TagsTagIdGetResponse200 = {
+  data: TagRead;
   status: 200;
 };
 
-export type deleteTaskTagApiV1TagsTagIdDeleteResponse422 = {
+export type getTagApiV1TagsTagIdGetResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type deleteTaskTagApiV1TagsTagIdDeleteResponseSuccess =
-  deleteTaskTagApiV1TagsTagIdDeleteResponse200 & {
+export type getTagApiV1TagsTagIdGetResponseSuccess =
+  getTagApiV1TagsTagIdGetResponse200 & {
     headers: Headers;
   };
-export type deleteTaskTagApiV1TagsTagIdDeleteResponseError =
-  deleteTaskTagApiV1TagsTagIdDeleteResponse422 & {
+export type getTagApiV1TagsTagIdGetResponseError =
+  getTagApiV1TagsTagIdGetResponse422 & {
     headers: Headers;
   };
 
-export type deleteTaskTagApiV1TagsTagIdDeleteResponse =
-  | deleteTaskTagApiV1TagsTagIdDeleteResponseSuccess
-  | deleteTaskTagApiV1TagsTagIdDeleteResponseError;
+export type getTagApiV1TagsTagIdGetResponse =
+  | getTagApiV1TagsTagIdGetResponseSuccess
+  | getTagApiV1TagsTagIdGetResponseError;
 
-export const getDeleteTaskTagApiV1TagsTagIdDeleteUrl = (tagId: string) => {
+export const getGetTagApiV1TagsTagIdGetUrl = (tagId: string) => {
   return `/api/v1/tags/${tagId}`;
 };
 
-export const deleteTaskTagApiV1TagsTagIdDelete = async (
+export const getTagApiV1TagsTagIdGet = async (
   tagId: string,
   options?: RequestInit,
-): Promise<deleteTaskTagApiV1TagsTagIdDeleteResponse> => {
-  return customFetch<deleteTaskTagApiV1TagsTagIdDeleteResponse>(
-    getDeleteTaskTagApiV1TagsTagIdDeleteUrl(tagId),
+): Promise<getTagApiV1TagsTagIdGetResponse> => {
+  return customFetch<getTagApiV1TagsTagIdGetResponse>(
+    getGetTagApiV1TagsTagIdGetUrl(tagId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetTagApiV1TagsTagIdGetQueryKey = (tagId: string) => {
+  return [`/api/v1/tags/${tagId}`] as const;
+};
+
+export const getGetTagApiV1TagsTagIdGetQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>,
+  TError = HTTPValidationError,
+>(
+  tagId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetTagApiV1TagsTagIdGetQueryKey(tagId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>
+  > = ({ signal }) =>
+    getTagApiV1TagsTagIdGet(tagId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!tagId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetTagApiV1TagsTagIdGetQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>
+>;
+export type GetTagApiV1TagsTagIdGetQueryError = HTTPValidationError;
+
+export function useGetTagApiV1TagsTagIdGet<
+  TData = Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>,
+  TError = HTTPValidationError,
+>(
+  tagId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>,
+          TError,
+          Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetTagApiV1TagsTagIdGet<
+  TData = Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>,
+  TError = HTTPValidationError,
+>(
+  tagId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>,
+          TError,
+          Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetTagApiV1TagsTagIdGet<
+  TData = Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>,
+  TError = HTTPValidationError,
+>(
+  tagId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get Tag
+ */
+
+export function useGetTagApiV1TagsTagIdGet<
+  TData = Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>,
+  TError = HTTPValidationError,
+>(
+  tagId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getTagApiV1TagsTagIdGet>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetTagApiV1TagsTagIdGetQueryOptions(tagId, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Update a tag in the active organization.
+ * @summary Update Tag
+ */
+export type updateTagApiV1TagsTagIdPatchResponse200 = {
+  data: TagRead;
+  status: 200;
+};
+
+export type updateTagApiV1TagsTagIdPatchResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type updateTagApiV1TagsTagIdPatchResponseSuccess =
+  updateTagApiV1TagsTagIdPatchResponse200 & {
+    headers: Headers;
+  };
+export type updateTagApiV1TagsTagIdPatchResponseError =
+  updateTagApiV1TagsTagIdPatchResponse422 & {
+    headers: Headers;
+  };
+
+export type updateTagApiV1TagsTagIdPatchResponse =
+  | updateTagApiV1TagsTagIdPatchResponseSuccess
+  | updateTagApiV1TagsTagIdPatchResponseError;
+
+export const getUpdateTagApiV1TagsTagIdPatchUrl = (tagId: string) => {
+  return `/api/v1/tags/${tagId}`;
+};
+
+export const updateTagApiV1TagsTagIdPatch = async (
+  tagId: string,
+  tagUpdate: TagUpdate,
+  options?: RequestInit,
+): Promise<updateTagApiV1TagsTagIdPatchResponse> => {
+  return customFetch<updateTagApiV1TagsTagIdPatchResponse>(
+    getUpdateTagApiV1TagsTagIdPatchUrl(tagId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(tagUpdate),
+    },
+  );
+};
+
+export const getUpdateTagApiV1TagsTagIdPatchMutationOptions = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateTagApiV1TagsTagIdPatch>>,
+    TError,
+    { tagId: string; data: TagUpdate },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateTagApiV1TagsTagIdPatch>>,
+  TError,
+  { tagId: string; data: TagUpdate },
+  TContext
+> => {
+  const mutationKey = ["updateTagApiV1TagsTagIdPatch"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateTagApiV1TagsTagIdPatch>>,
+    { tagId: string; data: TagUpdate }
+  > = (props) => {
+    const { tagId, data } = props ?? {};
+
+    return updateTagApiV1TagsTagIdPatch(tagId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateTagApiV1TagsTagIdPatchMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateTagApiV1TagsTagIdPatch>>
+>;
+export type UpdateTagApiV1TagsTagIdPatchMutationBody = TagUpdate;
+export type UpdateTagApiV1TagsTagIdPatchMutationError = HTTPValidationError;
+
+/**
+ * @summary Update Tag
+ */
+export const useUpdateTagApiV1TagsTagIdPatch = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateTagApiV1TagsTagIdPatch>>,
+      TError,
+      { tagId: string; data: TagUpdate },
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateTagApiV1TagsTagIdPatch>>,
+  TError,
+  { tagId: string; data: TagUpdate },
+  TContext
+> => {
+  return useMutation(
+    getUpdateTagApiV1TagsTagIdPatchMutationOptions(options),
+    queryClient,
+  );
+};
+/**
+ * Delete a tag and remove all associated tag links.
+ * @summary Delete Tag
+ */
+export type deleteTagApiV1TagsTagIdDeleteResponse200 = {
+  data: OkResponse;
+  status: 200;
+};
+
+export type deleteTagApiV1TagsTagIdDeleteResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type deleteTagApiV1TagsTagIdDeleteResponseSuccess =
+  deleteTagApiV1TagsTagIdDeleteResponse200 & {
+    headers: Headers;
+  };
+export type deleteTagApiV1TagsTagIdDeleteResponseError =
+  deleteTagApiV1TagsTagIdDeleteResponse422 & {
+    headers: Headers;
+  };
+
+export type deleteTagApiV1TagsTagIdDeleteResponse =
+  | deleteTagApiV1TagsTagIdDeleteResponseSuccess
+  | deleteTagApiV1TagsTagIdDeleteResponseError;
+
+export const getDeleteTagApiV1TagsTagIdDeleteUrl = (tagId: string) => {
+  return `/api/v1/tags/${tagId}`;
+};
+
+export const deleteTagApiV1TagsTagIdDelete = async (
+  tagId: string,
+  options?: RequestInit,
+): Promise<deleteTagApiV1TagsTagIdDeleteResponse> => {
+  return customFetch<deleteTagApiV1TagsTagIdDeleteResponse>(
+    getDeleteTagApiV1TagsTagIdDeleteUrl(tagId),
     {
       ...options,
       method: "DELETE",
@@ -404,24 +720,24 @@ export const deleteTaskTagApiV1TagsTagIdDelete = async (
   );
 };
 
-export const getDeleteTaskTagApiV1TagsTagIdDeleteMutationOptions = <
+export const getDeleteTagApiV1TagsTagIdDeleteMutationOptions = <
   TError = HTTPValidationError,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof deleteTaskTagApiV1TagsTagIdDelete>>,
+    Awaited<ReturnType<typeof deleteTagApiV1TagsTagIdDelete>>,
     TError,
     { tagId: string },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof deleteTaskTagApiV1TagsTagIdDelete>>,
+  Awaited<ReturnType<typeof deleteTagApiV1TagsTagIdDelete>>,
   TError,
   { tagId: string },
   TContext
 > => {
-  const mutationKey = ["deleteTaskTagApiV1TagsTagIdDelete"];
+  const mutationKey = ["deleteTagApiV1TagsTagIdDelete"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -431,34 +747,33 @@ export const getDeleteTaskTagApiV1TagsTagIdDeleteMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof deleteTaskTagApiV1TagsTagIdDelete>>,
+    Awaited<ReturnType<typeof deleteTagApiV1TagsTagIdDelete>>,
     { tagId: string }
   > = (props) => {
     const { tagId } = props ?? {};
 
-    return deleteTaskTagApiV1TagsTagIdDelete(tagId, requestOptions);
+    return deleteTagApiV1TagsTagIdDelete(tagId, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type DeleteTaskTagApiV1TagsTagIdDeleteMutationResult = NonNullable<
-  Awaited<ReturnType<typeof deleteTaskTagApiV1TagsTagIdDelete>>
+export type DeleteTagApiV1TagsTagIdDeleteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteTagApiV1TagsTagIdDelete>>
 >;
 
-export type DeleteTaskTagApiV1TagsTagIdDeleteMutationError =
-  HTTPValidationError;
+export type DeleteTagApiV1TagsTagIdDeleteMutationError = HTTPValidationError;
 
 /**
- * @summary Delete Task Tag
+ * @summary Delete Tag
  */
-export const useDeleteTaskTagApiV1TagsTagIdDelete = <
+export const useDeleteTagApiV1TagsTagIdDelete = <
   TError = HTTPValidationError,
   TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof deleteTaskTagApiV1TagsTagIdDelete>>,
+      Awaited<ReturnType<typeof deleteTagApiV1TagsTagIdDelete>>,
       TError,
       { tagId: string },
       TContext
@@ -467,332 +782,13 @@ export const useDeleteTaskTagApiV1TagsTagIdDelete = <
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof deleteTaskTagApiV1TagsTagIdDelete>>,
+  Awaited<ReturnType<typeof deleteTagApiV1TagsTagIdDelete>>,
   TError,
   { tagId: string },
   TContext
 > => {
   return useMutation(
-    getDeleteTaskTagApiV1TagsTagIdDeleteMutationOptions(options),
-    queryClient,
-  );
-};
-/**
- * Get a single task tag in the active organization.
- * @summary Get Task Tag
- */
-export type getTaskTagApiV1TagsTagIdGetResponse200 = {
-  data: TaskTagRead;
-  status: 200;
-};
-
-export type getTaskTagApiV1TagsTagIdGetResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type getTaskTagApiV1TagsTagIdGetResponseSuccess =
-  getTaskTagApiV1TagsTagIdGetResponse200 & {
-    headers: Headers;
-  };
-export type getTaskTagApiV1TagsTagIdGetResponseError =
-  getTaskTagApiV1TagsTagIdGetResponse422 & {
-    headers: Headers;
-  };
-
-export type getTaskTagApiV1TagsTagIdGetResponse =
-  | getTaskTagApiV1TagsTagIdGetResponseSuccess
-  | getTaskTagApiV1TagsTagIdGetResponseError;
-
-export const getGetTaskTagApiV1TagsTagIdGetUrl = (tagId: string) => {
-  return `/api/v1/tags/${tagId}`;
-};
-
-export const getTaskTagApiV1TagsTagIdGet = async (
-  tagId: string,
-  options?: RequestInit,
-): Promise<getTaskTagApiV1TagsTagIdGetResponse> => {
-  return customFetch<getTaskTagApiV1TagsTagIdGetResponse>(
-    getGetTaskTagApiV1TagsTagIdGetUrl(tagId),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
-
-export const getGetTaskTagApiV1TagsTagIdGetQueryKey = (tagId: string) => {
-  return [`/api/v1/tags/${tagId}`] as const;
-};
-
-export const getGetTaskTagApiV1TagsTagIdGetQueryOptions = <
-  TData = Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>,
-  TError = HTTPValidationError,
->(
-  tagId: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-
-  const queryKey =
-    queryOptions?.queryKey ?? getGetTaskTagApiV1TagsTagIdGetQueryKey(tagId);
-
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>
-  > = ({ signal }) =>
-    getTaskTagApiV1TagsTagIdGet(tagId, { signal, ...requestOptions });
-
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!tagId,
-    ...queryOptions,
-  } as UseQueryOptions<
-    Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
-
-export type GetTaskTagApiV1TagsTagIdGetQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>
->;
-export type GetTaskTagApiV1TagsTagIdGetQueryError = HTTPValidationError;
-
-export function useGetTaskTagApiV1TagsTagIdGet<
-  TData = Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>,
-  TError = HTTPValidationError,
->(
-  tagId: string,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>,
-          TError,
-          Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>
-        >,
-        "initialData"
-      >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useGetTaskTagApiV1TagsTagIdGet<
-  TData = Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>,
-  TError = HTTPValidationError,
->(
-  tagId: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>,
-          TError,
-          Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>
-        >,
-        "initialData"
-      >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useGetTaskTagApiV1TagsTagIdGet<
-  TData = Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>,
-  TError = HTTPValidationError,
->(
-  tagId: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-/**
- * @summary Get Task Tag
- */
-
-export function useGetTaskTagApiV1TagsTagIdGet<
-  TData = Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>,
-  TError = HTTPValidationError,
->(
-  tagId: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getTaskTagApiV1TagsTagIdGet>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getGetTaskTagApiV1TagsTagIdGetQueryOptions(
-    tagId,
-    options,
-  );
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-/**
- * Update a task tag in the active organization.
- * @summary Update Task Tag
- */
-export type updateTaskTagApiV1TagsTagIdPatchResponse200 = {
-  data: TaskTagRead;
-  status: 200;
-};
-
-export type updateTaskTagApiV1TagsTagIdPatchResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type updateTaskTagApiV1TagsTagIdPatchResponseSuccess =
-  updateTaskTagApiV1TagsTagIdPatchResponse200 & {
-    headers: Headers;
-  };
-export type updateTaskTagApiV1TagsTagIdPatchResponseError =
-  updateTaskTagApiV1TagsTagIdPatchResponse422 & {
-    headers: Headers;
-  };
-
-export type updateTaskTagApiV1TagsTagIdPatchResponse =
-  | updateTaskTagApiV1TagsTagIdPatchResponseSuccess
-  | updateTaskTagApiV1TagsTagIdPatchResponseError;
-
-export const getUpdateTaskTagApiV1TagsTagIdPatchUrl = (tagId: string) => {
-  return `/api/v1/tags/${tagId}`;
-};
-
-export const updateTaskTagApiV1TagsTagIdPatch = async (
-  tagId: string,
-  taskTagUpdate: TaskTagUpdate,
-  options?: RequestInit,
-): Promise<updateTaskTagApiV1TagsTagIdPatchResponse> => {
-  return customFetch<updateTaskTagApiV1TagsTagIdPatchResponse>(
-    getUpdateTaskTagApiV1TagsTagIdPatchUrl(tagId),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(taskTagUpdate),
-    },
-  );
-};
-
-export const getUpdateTaskTagApiV1TagsTagIdPatchMutationOptions = <
-  TError = HTTPValidationError,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof updateTaskTagApiV1TagsTagIdPatch>>,
-    TError,
-    { tagId: string; data: TaskTagUpdate },
-    TContext
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof updateTaskTagApiV1TagsTagIdPatch>>,
-  TError,
-  { tagId: string; data: TaskTagUpdate },
-  TContext
-> => {
-  const mutationKey = ["updateTaskTagApiV1TagsTagIdPatch"];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof updateTaskTagApiV1TagsTagIdPatch>>,
-    { tagId: string; data: TaskTagUpdate }
-  > = (props) => {
-    const { tagId, data } = props ?? {};
-
-    return updateTaskTagApiV1TagsTagIdPatch(tagId, data, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type UpdateTaskTagApiV1TagsTagIdPatchMutationResult = NonNullable<
-  Awaited<ReturnType<typeof updateTaskTagApiV1TagsTagIdPatch>>
->;
-export type UpdateTaskTagApiV1TagsTagIdPatchMutationBody = TaskTagUpdate;
-export type UpdateTaskTagApiV1TagsTagIdPatchMutationError = HTTPValidationError;
-
-/**
- * @summary Update Task Tag
- */
-export const useUpdateTaskTagApiV1TagsTagIdPatch = <
-  TError = HTTPValidationError,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof updateTaskTagApiV1TagsTagIdPatch>>,
-      TError,
-      { tagId: string; data: TaskTagUpdate },
-      TContext
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof updateTaskTagApiV1TagsTagIdPatch>>,
-  TError,
-  { tagId: string; data: TaskTagUpdate },
-  TContext
-> => {
-  return useMutation(
-    getUpdateTaskTagApiV1TagsTagIdPatchMutationOptions(options),
+    getDeleteTagApiV1TagsTagIdDeleteMutationOptions(options),
     queryClient,
   );
 };

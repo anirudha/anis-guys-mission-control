@@ -13,15 +13,15 @@ import type { ApprovalReadStatus } from "./approvalReadStatus";
  */
 export interface ApprovalRead {
   action_type: string;
-  agent_id?: string | null;
-  board_id: string;
-  confidence: number;
-  created_at: string;
-  id: string;
-  payload?: ApprovalReadPayload;
-  resolved_at?: string | null;
-  rubric_scores?: ApprovalReadRubricScores;
-  status?: ApprovalReadStatus;
   task_id?: string | null;
   task_ids?: string[];
+  payload?: ApprovalReadPayload;
+  confidence: number;
+  rubric_scores?: ApprovalReadRubricScores;
+  status?: ApprovalReadStatus;
+  id: string;
+  board_id: string;
+  agent_id?: string | null;
+  created_at: string;
+  resolved_at?: string | null;
 }

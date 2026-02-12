@@ -10,21 +10,21 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import { type TaskTagRead } from "@/api/generated/model";
+import { type TagRead } from "@/api/generated/model";
 import {
   DataTable,
   type DataTableEmptyState,
 } from "@/components/tables/DataTable";
 import { dateCell } from "@/components/tables/cell-formatters";
 
-type TaskTagsTableProps = {
-  tags: TaskTagRead[];
+type TagsTableProps = {
+  tags: TagRead[];
   isLoading?: boolean;
   sorting?: SortingState;
   onSortingChange?: OnChangeFn<SortingState>;
   stickyHeader?: boolean;
-  onEdit?: (tag: TaskTagRead) => void;
-  onDelete?: (tag: TaskTagRead) => void;
+  onEdit?: (tag: TagRead) => void;
+  onDelete?: (tag: TagRead) => void;
   emptyState?: Omit<DataTableEmptyState, "icon"> & {
     icon?: DataTableEmptyState["icon"];
   };
@@ -52,7 +52,7 @@ const normalizeColor = (value?: string | null) => {
   return cleaned;
 };
 
-export function TaskTagsTable({
+export function TagsTable({
   tags,
   isLoading = false,
   sorting,
@@ -61,7 +61,7 @@ export function TaskTagsTable({
   onEdit,
   onDelete,
   emptyState,
-}: TaskTagsTableProps) {
+}: TagsTableProps) {
   const [internalSorting, setInternalSorting] = useState<SortingState>([
     { id: "name", desc: false },
   ]);
@@ -72,7 +72,7 @@ export function TaskTagsTable({
       setInternalSorting(updater);
     });
 
-  const columns = useMemo<ColumnDef<TaskTagRead>[]>(
+  const columns = useMemo<ColumnDef<TagRead>[]>(
     () => [
       {
         accessorKey: "name",
