@@ -334,7 +334,13 @@ export const TaskBoard = memo(function TaskBoard({
   return (
     <div
       ref={boardRef}
-      className="grid grid-flow-col auto-cols-[minmax(260px,320px)] gap-4 overflow-x-auto pb-6"
+      data-testid="task-board"
+      className={cn(
+        // Mobile-first: stack columns vertically to avoid horizontal scrolling.
+        "grid grid-cols-1 gap-4 overflow-x-hidden pb-6",
+        // Desktop/tablet: switch back to horizontally scrollable kanban columns.
+        "sm:grid-flow-col sm:auto-cols-[minmax(260px,320px)] sm:grid-cols-none sm:overflow-x-auto",
+      )}
     >
         {columns.map((column) => {
           const columnTasks = grouped[column.status] ?? [];
@@ -385,18 +391,19 @@ export const TaskBoard = memo(function TaskBoard({
             <div
               key={column.title}
               className={cn(
-                "kanban-column min-h-[calc(100vh-260px)]",
+                // On mobile, columns are stacked, so avoid forcing tall fixed heights.
+                "kanban-column min-h-0",
+                // On larger screens, keep columns tall to reduce empty space during drag.
+                "sm:min-h-[calc(100vh-260px)]",
                 activeColumn === column.status &&
                   !readOnly &&
                   "ring-2 ring-slate-200",
               )}
               onDrop={readOnly ? undefined : handleDrop(column.status)}
               onDragOver={readOnly ? undefined : handleDragOver(column.status)}
-              onDragLeave={
-                readOnly ? undefined : handleDragLeave(column.status)
-              }
+              onDragLeave={readOnly ? undefined : handleDragLeave(column.status)}
             >
-              <div className="column-header sticky top-0 z-10 rounded-t-xl border border-b-0 border-slate-200 bg-white/80 px-4 py-3 backdrop-blur">
+              <div className="column-header z-10 rounded-t-xl border border-b-0 border-slate-200 bg-white px-4 py-3 sm:sticky sm:top-0 sm:bg-white/80 sm:backdrop-blur">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={cn("h-2 w-2 rounded-full", column.dot)} />
@@ -473,9 +480,7 @@ export const TaskBoard = memo(function TaskBoard({
                           onClick={() => onTaskSelect?.(task)}
                           draggable={!readOnly && !task.is_blocked}
                           isDragging={draggingId === task.id}
-                          onDragStart={
-                            readOnly ? undefined : handleDragStart(task)
-                          }
+                          onDragStart={readOnly ? undefined : handleDragStart(task)}
                           onDragEnd={readOnly ? undefined : handleDragEnd}
                         />
                       </div>
