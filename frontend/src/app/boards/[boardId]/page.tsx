@@ -14,6 +14,7 @@ import {
   Plus,
   Pencil,
   Play,
+  RefreshCcw,
   Settings,
   ShieldCheck,
   X,
@@ -1794,6 +1795,12 @@ export default function BoardDetailPage() {
     });
   }, [agents, workingAgentIds]);
 
+  const boardLead = useMemo(
+    () => agents.find((agent) => agent.is_board_lead) ?? null,
+    [agents],
+  );
+  const isBoardLeadProvisioning = boardLead?.status === "provisioning";
+
   const loadComments = useCallback(
     async (taskId: string) => {
       if (!isSignedIn || !boardId) return;
@@ -2347,6 +2354,12 @@ export default function BoardDetailPage() {
                   <p className="mt-1 text-sm text-slate-500">
                     Keep tasks moving through your workflow.
                   </p>
+                  {isBoardLeadProvisioning ? (
+                    <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800">
+                      <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
+                      <span>Provisioning board lead…</span>
+                    </div>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-1">
