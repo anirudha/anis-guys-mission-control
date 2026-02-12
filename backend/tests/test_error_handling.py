@@ -227,6 +227,24 @@ async def test_request_validation_handler_includes_request_id() -> None:
 
 
 @pytest.mark.asyncio
+async def test_request_validation_exception_wrapper_success_path() -> None:
+    req = Request({"type": "http", "headers": [], "state": {"request_id": "req-wrap-1"}})
+    exc = RequestValidationError(
+        [
+            {
+                "loc": ("query", "limit"),
+                "msg": "value is not a valid integer",
+                "type": "type_error.integer",
+            }
+        ]
+    )
+
+    resp = await _request_validation_exception_handler(req, exc)
+    assert resp.status_code == 422
+    assert b"request_id" in resp.body
+
+
+@pytest.mark.asyncio
 async def test_response_validation_handler_includes_request_id() -> None:
     req = Request(
         {
@@ -250,3 +268,29 @@ async def test_response_validation_handler_includes_request_id() -> None:
     resp = await _response_validation_handler(req, exc)
     assert resp.status_code == 500
     assert resp.body
+
+
+@pytest.mark.asyncio
+async def test_response_validation_exception_wrapper_success_path() -> None:
+    req = Request(
+        {
+            "type": "http",
+            "method": "GET",
+            "path": "/x",
+            "headers": [],
+            "state": {"request_id": "req-wrap-2"},
+        }
+    )
+    exc = ResponseValidationError(
+        [
+            {
+                "loc": ("response", "name"),
+                "msg": "field required",
+                "type": "value_error.missing",
+            }
+        ]
+    )
+
+    resp = await _response_validation_exception_handler(req, exc)
+    assert resp.status_code == 500
+    assert b"request_id" in resp.body
