@@ -244,6 +244,15 @@ def _collect_pack_skills_from_index(
         return None
 
     try:
+        stat = index_file.stat()
+    except OSError as exc:
+        raise RuntimeError("unable to read skills_index.json") from exc
+
+    # Hard cap to avoid loading an arbitrarily large file into memory.
+    if stat.st_size > 256 * 1024:
+        raise RuntimeError("skills_index.json is too large")
+
+    try:
         payload = json.loads(index_file.read_text(encoding="utf-8"))
     except OSError as exc:
         raise RuntimeError("unable to read skills_index.json") from exc
@@ -382,7 +391,10 @@ def _collect_pack_skills(source_url: str) -> list[PackSkillCandidate]:
             raise RuntimeError("timed out cloning pack repository") from exc
         except subprocess.CalledProcessError as exc:
             stderr = (exc.stderr or "").strip()
-            detail = stderr or "unable to clone pack repository"
+            # Avoid reflecting arbitrary stderr to callers; keep details minimal.
+            detail = "unable to clone pack repository"
+            if stderr:
+                detail = f"{detail}: {stderr.splitlines()[0][:200]}"
             raise RuntimeError(detail) from exc
 
         try:
@@ -397,6 +409,9 @@ def _collect_pack_skills(source_url: str) -> list[PackSkillCandidate]:
             branch = "main"
 
         branch = branch or "main"
+        # Fail closed on weird output to avoid constructing malformed URLs.
+        if any(ch in branch for ch in {"\n", "\r", "\t"}):
+            branch = "main"
 
         return _collect_pack_skills_from_repo(
             repo_dir=repo_dir,

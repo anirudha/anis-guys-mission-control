@@ -91,6 +91,8 @@ export default function SkillsPacksPage() {
   };
 
   const handleSyncPack = async (pack: SkillPackRead) => {
+    if (syncingPackIds.has(pack.id)) return;
+
     setSyncingPackIds((previous) => {
       const next = new Set(previous);
       next.add(pack.id);

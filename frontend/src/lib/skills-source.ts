@@ -9,7 +9,15 @@ export const repoBaseFromSkillSourceUrl = (skillSourceUrl: string): string | nul
     const marker = "/tree/";
     const markerIndex = parsed.pathname.indexOf(marker);
     if (markerIndex <= 0) return null;
-    return normalizeRepoSourceUrl(`${parsed.origin}${parsed.pathname.slice(0, markerIndex)}`);
+
+    // Reject unexpected structures (e.g. multiple /tree/ markers).
+    if (parsed.pathname.indexOf(marker, markerIndex + marker.length) !== -1) return null;
+
+    const repoPath = parsed.pathname.slice(0, markerIndex);
+    if (!repoPath || repoPath === "/") return null;
+    if (repoPath.endsWith("/tree")) return null;
+
+    return normalizeRepoSourceUrl(`${parsed.origin}${repoPath}`);
   } catch {
     return null;
   }

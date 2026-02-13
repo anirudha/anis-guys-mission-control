@@ -176,6 +176,9 @@ async def delete_gateway(
         await service.clear_agent_foreign_keys(agent_id=agent.id)
         await session.delete(agent)
 
+    # NOTE: The migration declares `ondelete="CASCADE"` for gateway_installed_skills.gateway_id,
+    # but some backends/test environments (e.g. SQLite without FK pragma) may not
+    # enforce cascades. Delete rows explicitly to guarantee cleanup semantics.
     installed_skills = await GatewayInstalledSkill.objects.filter_by(
         gateway_id=gateway.id,
     ).all(session)
