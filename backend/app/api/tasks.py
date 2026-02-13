@@ -1054,12 +1054,16 @@ async def update_task(
     updates.pop("comment", None)
     updates.pop("depends_on_task_ids", None)
     updates.pop("tag_ids", None)
+    requested_status = payload.status if "status" in payload.model_fields_set else None
     update = _TaskUpdateInput(
         task=task,
         actor=actor,
         board_id=board_id,
         previous_status=previous_status,
         previous_assigned=previous_assigned,
+        status_requested=(
+            requested_status is not None and requested_status != previous_status
+        ),
         updates=updates,
         comment=comment,
         depends_on_task_ids=depends_on_task_ids,
@@ -1299,6 +1303,7 @@ class _TaskUpdateInput:
     board_id: UUID
     previous_status: str
     previous_assigned: UUID | None
+    status_requested: bool
     updates: dict[str, object]
     comment: str | None
     depends_on_task_ids: list[UUID] | None
@@ -1597,7 +1602,7 @@ async def _apply_lead_task_update(
         task_id=update.task.id,
         previous_status=update.previous_status,
         target_status=update.task.status,
-        status_requested="status" in update.updates,
+        status_requested=update.status_requested,
     )
     await _require_review_before_done_when_enabled(
         session,
@@ -1878,7 +1883,7 @@ async def _finalize_updated_task(
         task_id=update.task.id,
         previous_status=update.previous_status,
         target_status=update.task.status,
-        status_requested="status" in update.updates,
+        status_requested=update.status_requested,
     )
     await _require_review_before_done_when_enabled(
         session,

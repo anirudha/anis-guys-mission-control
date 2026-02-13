@@ -357,6 +357,53 @@ async def test_update_task_allows_status_change_with_pending_approval_when_toggl
 
 
 @pytest.mark.asyncio
+async def test_update_task_allows_dependency_change_with_pending_approval() -> None:
+    engine = await _make_engine()
+    try:
+        async with await _make_session(engine) as session:
+            board, task, _agent = await _seed_board_task_and_agent(
+                session,
+                task_status="review",
+                require_approval_for_done=False,
+                block_status_changes_with_pending_approval=True,
+            )
+            dependency = Task(
+                id=uuid4(),
+                board_id=board.id,
+                title="Dependency",
+                status="inbox",
+            )
+            session.add(dependency)
+            session.add(
+                Approval(
+                    id=uuid4(),
+                    board_id=board.id,
+                    task_id=task.id,
+                    action_type="task.execute",
+                    confidence=70,
+                    status="pending",
+                ),
+            )
+            await session.commit()
+
+            updated = await tasks_api.update_task(
+                payload=TaskUpdate(
+                    status="review",
+                    depends_on_task_ids=[dependency.id],
+                ),
+                task=task,
+                session=session,
+                actor=ActorContext(actor_type="user"),
+            )
+
+            assert updated.depends_on_task_ids == [dependency.id]
+            assert updated.status == "inbox"
+            assert updated.blocked_by_task_ids == [dependency.id]
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.asyncio
 async def test_update_task_rejects_status_change_for_pending_multi_task_link_when_toggle_enabled() -> (
     None
 ):
