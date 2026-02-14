@@ -4,8 +4,8 @@ from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
-from sqlmodel import col, select, SQLModel
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlmodel import SQLModel, col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.api import tasks as tasks_api
@@ -165,7 +165,10 @@ async def test_non_lead_agent_forbidden_without_assigned_task() -> None:
             assert exc.value.status_code == 403
             assert isinstance(exc.value.detail, dict)
             assert exc.value.detail["code"] == "task_assignee_required"
-            assert exc.value.detail["message"] == "Agents can only change status on tasks assigned to them."
+            assert (
+                exc.value.detail["message"]
+                == "Agents can only change status on tasks assigned to them."
+            )
     finally:
         await engine.dispose()
 
@@ -247,7 +250,10 @@ async def test_non_lead_agent_forbidden_when_task_assigned_to_other_agent() -> N
             assert exc.value.status_code == 403
             assert isinstance(exc.value.detail, dict)
             assert exc.value.detail["code"] == "task_assignee_mismatch"
-            assert exc.value.detail["message"] == "Agents can only change status on tasks assigned to them."
+            assert (
+                exc.value.detail["message"]
+                == "Agents can only change status on tasks assigned to them."
+            )
     finally:
         await engine.dispose()
 

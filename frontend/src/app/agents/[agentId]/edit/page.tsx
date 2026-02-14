@@ -31,9 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  DEFAULT_IDENTITY_PROFILE,
-} from "@/lib/agent-templates";
+import { DEFAULT_IDENTITY_PROFILE } from "@/lib/agent-templates";
 
 type IdentityProfile = {
   role: string;

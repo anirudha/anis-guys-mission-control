@@ -110,8 +110,7 @@ BOARD_SHARED_TEMPLATE_MAP = {
     "TOOLS.md": "BOARD_TOOLS.md.j2",
 }
 
-LEAD_TEMPLATE_MAP = {
-}
+LEAD_TEMPLATE_MAP: dict[str, str] = {}
 
 _TOOLS_KV_RE = re.compile(r"^(?P<key>[A-Z0-9_]+)=(?P<value>.*)$")
 _NON_TRANSIENT_GATEWAY_ERROR_MARKERS = ("unsupported file",)

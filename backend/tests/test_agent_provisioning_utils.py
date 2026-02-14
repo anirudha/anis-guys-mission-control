@@ -10,9 +10,9 @@ import pytest
 
 import app.services.openclaw.internal.agent_key as agent_key_mod
 import app.services.openclaw.provisioning as agent_provisioning
-from app.services.souls_directory import SoulRef
 from app.services.openclaw.provisioning_db import AgentLifecycleService
 from app.services.openclaw.shared import GatewayAgentIdentity
+from app.services.souls_directory import SoulRef
 
 
 def test_slugify_normalizes_and_trims():
@@ -67,7 +67,7 @@ def test_templates_root_points_to_repo_templates_dir():
     root = agent_provisioning._templates_root()
     assert root.name == "templates"
     assert root.parent.name == "backend"
-    assert (root / "AGENTS.md").exists()
+    assert (root / "BOARD_AGENTS.md.j2").exists()
 
 
 @dataclass
@@ -372,7 +372,9 @@ def test_select_role_soul_ref_prefers_exact_slug() -> None:
 
 
 @pytest.mark.asyncio
-async def test_resolve_role_soul_markdown_returns_best_effort(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_resolve_role_soul_markdown_returns_best_effort(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     refs = [SoulRef(handle="team", slug="data-scientist")]
 
     async def _fake_list_refs() -> list[SoulRef]:
