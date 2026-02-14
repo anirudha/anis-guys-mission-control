@@ -8,8 +8,8 @@ from typing import Any
 from uuid import UUID
 
 from pydantic import Field, field_validator
-from sqlmodel._compat import SQLModelConfig
 from sqlmodel import SQLModel
+from sqlmodel._compat import SQLModelConfig
 
 from app.schemas.common import NonEmptyStr
 

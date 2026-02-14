@@ -577,7 +577,9 @@ async def stream_board_group_memory_for_board(
                 "decision": "agent_board_group_memory_record",
             }
         ],
-        side_effects=["Persist new group-memory entries with optional agent notification dispatch."],
+        side_effects=[
+            "Persist new group-memory entries with optional agent notification dispatch."
+        ],
         routing_policy=[
             "Use for shared memory writes that should be visible across linked boards.",
             "Prefer direct board memory endpoints for board-local persistence.",

@@ -13,4 +13,3 @@ class HealthStatusResponse(SQLModel):
         description="Indicates whether the probe check succeeded.",
         examples=[True],
     )
-

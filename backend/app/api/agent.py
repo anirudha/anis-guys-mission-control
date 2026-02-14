@@ -155,8 +155,7 @@ def _agent_board_openapi_hints(
             "Authenticated agent token",
             "Board access is validated before execution",
         ],
-        "x-side-effects": side_effects
-        or ["Read/write side effects vary by endpoint semantics."],
+        "x-side-effects": side_effects or ["Read/write side effects vary by endpoint semantics."],
         "x-negative-guidance": negative_guidance
         or ["Avoid this endpoint when a focused sibling endpoint handles the action."],
         "x-routing-policy": routing_policy
@@ -525,7 +524,10 @@ async def list_tags(
             "description": "Caller is not board lead",
         },
         404: {"model": LLMErrorResponse, "description": "Assigned target agent does not exist"},
-        409: {"model": LLMErrorResponse, "description": "Dependency or assignment validation failed"},
+        409: {
+            "model": LLMErrorResponse,
+            "description": "Dependency or assignment validation failed",
+        },
         422: {"model": LLMErrorResponse, "description": "Payload validation failed"},
     },
     openapi_extra={

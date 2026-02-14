@@ -31,7 +31,10 @@ class LLMErrorResponse(SQLModel):
             "Error payload. Agents should rely on `code` when present and default "
             "to `message` for fallback display."
         ),
-        examples=["Invalid payload for lead escalation.", {"code": "not_found", "message": "Agent not found."}],
+        examples=[
+            "Invalid payload for lead escalation.",
+            {"code": "not_found", "message": "Agent not found."},
+        ],
     )
     request_id: str | None = Field(
         default=None,

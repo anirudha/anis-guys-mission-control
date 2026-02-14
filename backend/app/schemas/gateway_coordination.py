@@ -6,8 +6,8 @@ from typing import Literal
 from uuid import UUID
 
 from pydantic import Field
-from sqlmodel._compat import SQLModelConfig
 from sqlmodel import SQLModel
+from sqlmodel._compat import SQLModelConfig
 
 from app.schemas.common import NonEmptyStr
 
