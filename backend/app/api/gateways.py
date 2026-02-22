@@ -138,11 +138,7 @@ async def update_gateway(
         organization_id=ctx.organization.id,
     )
     updates = payload.model_dump(exclude_unset=True)
-    if (
-        "url" in updates
-        or "token" in updates
-        or "disable_device_pairing" in updates
-    ):
+    if "url" in updates or "token" in updates or "disable_device_pairing" in updates:
         raw_next_url = updates.get("url", gateway.url)
         next_url = raw_next_url.strip() if isinstance(raw_next_url, str) else ""
         next_token = updates.get("token", gateway.token)

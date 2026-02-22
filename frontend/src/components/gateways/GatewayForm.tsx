@@ -126,7 +126,9 @@ export function GatewayForm({
               role="switch"
               aria-checked={disableDevicePairing}
               aria-label="Disable device pairing"
-              onClick={() => onDisableDevicePairingChange(!disableDevicePairing)}
+              onClick={() =>
+                onDisableDevicePairingChange(!disableDevicePairing)
+              }
               disabled={isLoading}
               className={`inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition ${
                 disableDevicePairing
