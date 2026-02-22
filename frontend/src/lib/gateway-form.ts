@@ -13,16 +13,42 @@ export type GatewayCheckStatus = "idle" | "checking" | "success" | "error";
  */
 function hasExplicitPort(urlString: string): boolean {
   try {
-    const { hostname } = new URL(urlString);
     // Extract the authority portion (between // and the first / ? or #)
     const withoutScheme = urlString.slice(urlString.indexOf("//") + 2);
     const authority = withoutScheme.split(/[/?#]/)[0];
-    // authority is either "host", "host:port", or "[ipv6]:port"
-    // Remove a leading IPv6 bracket group before checking for ":"
-    const withoutIPv6 = authority.startsWith("[")
-      ? authority.slice(authority.indexOf("]") + 1)
-      : authority.slice(hostname.length);
-    return withoutIPv6.startsWith(":") && /^:\d+$/.test(withoutIPv6);
+    if (!authority) {
+      return false;
+    }
+
+    // authority may be:
+    // - host[:port]
+    // - [ipv6][:port]
+    // - userinfo@host[:port]
+    // - userinfo@[ipv6][:port]
+    const atIndex = authority.lastIndexOf("@");
+    const hostPort = atIndex === -1 ? authority : authority.slice(atIndex + 1);
+
+    let portSegment = "";
+    if (hostPort.startsWith("[")) {
+      const closingBracketIndex = hostPort.indexOf("]");
+      if (closingBracketIndex === -1) {
+        return false;
+      }
+      portSegment = hostPort.slice(closingBracketIndex + 1);
+    } else {
+      const lastColonIndex = hostPort.lastIndexOf(":");
+      if (lastColonIndex === -1) {
+        return false;
+      }
+      portSegment = hostPort.slice(lastColonIndex);
+    }
+
+    if (!portSegment.startsWith(":") || !/^:\d+$/.test(portSegment)) {
+      return false;
+    }
+
+    const port = Number.parseInt(portSegment.slice(1), 10);
+    return Number.isInteger(port) && port >= 0 && port <= 65535;
   } catch {
     return false;
   }

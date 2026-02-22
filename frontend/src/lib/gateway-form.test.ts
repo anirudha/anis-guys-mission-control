@@ -37,6 +37,22 @@ describe("validateGatewayUrl", () => {
     expect(validateGatewayUrl("  wss://host:443  ")).toBeNull();
   });
 
+  it("accepts IPv6 URLs with explicit non-default port", () => {
+    expect(validateGatewayUrl("wss://[::1]:8080")).toBeNull();
+  });
+
+  it("accepts IPv6 URLs with explicit default port", () => {
+    expect(validateGatewayUrl("wss://[2001:db8::1]:443")).toBeNull();
+  });
+
+  it("accepts userinfo URLs with explicit port", () => {
+    expect(validateGatewayUrl("ws://user:pass@gateway.example.com:8080")).toBeNull();
+  });
+
+  it("accepts userinfo URLs with IPv6 host and explicit port", () => {
+    expect(validateGatewayUrl("wss://user@[::1]:443")).toBeNull();
+  });
+
   it("rejects empty string", () => {
     expect(validateGatewayUrl("")).toBe("Gateway URL is required.");
   });
@@ -68,6 +84,18 @@ describe("validateGatewayUrl", () => {
   it("rejects completely invalid URL", () => {
     expect(validateGatewayUrl("not-a-url")).toBe(
       "Enter a valid gateway URL including port.",
+    );
+  });
+
+  it("rejects out-of-range ports", () => {
+    expect(validateGatewayUrl("wss://gateway.example.com:65536")).toBe(
+      "Enter a valid gateway URL including port.",
+    );
+  });
+
+  it("rejects userinfo URLs with no explicit port", () => {
+    expect(validateGatewayUrl("ws://user:pass@gateway.example.com")).toBe(
+      "Gateway URL must include an explicit port.",
     );
   });
 
