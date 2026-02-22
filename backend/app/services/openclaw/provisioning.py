@@ -971,7 +971,9 @@ def _control_plane_for_gateway(gateway: Gateway) -> OpenClawGatewayControlPlane:
         raise OpenClawGatewayError(msg)
     return OpenClawGatewayControlPlane(
         GatewayClientConfig(
-            url=gateway.url, token=gateway.token, allow_insecure_tls=gateway.allow_insecure_tls
+            url=gateway.url,
+            token=gateway.token,
+            allow_insecure_tls=gateway.allow_insecure_tls,
         ),
     )
 

@@ -184,7 +184,7 @@ def _redacted_url_for_log(raw_url: str) -> str:
 
 def _create_ssl_context(config: GatewayConfig) -> ssl.SSLContext | None:
     """Create SSL context for websocket connection.
-    
+
     Returns None for non-SSL connections (ws://) or an SSL context for wss://.
     If allow_insecure_tls is True, the context will not verify certificates.
     """
