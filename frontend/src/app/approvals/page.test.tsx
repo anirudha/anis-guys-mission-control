@@ -59,16 +59,30 @@ vi.mock("@clerk/nextjs", () => {
 
 describe("/approvals auth boundary", () => {
   it("renders without ClerkProvider runtime errors when publishable key is a placeholder", () => {
+    const previousAuthMode = process.env.NEXT_PUBLIC_AUTH_MODE;
+    const previousPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+    process.env.NEXT_PUBLIC_AUTH_MODE = "local";
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "placeholder";
+    window.sessionStorage.clear();
 
-    render(
-      <AuthProvider>
-        <QueryProvider>
-          <GlobalApprovalsPage />
-        </QueryProvider>
-      </AuthProvider>,
-    );
+    try {
+      render(
+        <AuthProvider>
+          <QueryProvider>
+            <GlobalApprovalsPage />
+          </QueryProvider>
+        </AuthProvider>,
+      );
 
-    expect(screen.getByText(/sign in to view approvals/i)).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /local authentication/i }),
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText(/access token/i)).toBeInTheDocument();
+    } finally {
+      process.env.NEXT_PUBLIC_AUTH_MODE = previousAuthMode;
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = previousPublishableKey;
+      window.sessionStorage.clear();
+    }
   });
 });

@@ -62,19 +62,33 @@ vi.mock("@clerk/nextjs", () => {
 
 describe("/activity auth boundary", () => {
   it("renders without ClerkProvider runtime errors when publishable key is a placeholder", () => {
+    const previousAuthMode = process.env.NEXT_PUBLIC_AUTH_MODE;
+    const previousPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
     // Simulate CI/secretless env where an arbitrary placeholder value may be present.
     // AuthProvider should treat this as disabled, and the auth wrappers must not render
     // Clerk SignedOut/SignedIn components.
+    process.env.NEXT_PUBLIC_AUTH_MODE = "local";
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "placeholder";
+    window.sessionStorage.clear();
 
-    render(
-      <AuthProvider>
-        <QueryProvider>
-          <ActivityPage />
-        </QueryProvider>
-      </AuthProvider>,
-    );
+    try {
+      render(
+        <AuthProvider>
+          <QueryProvider>
+            <ActivityPage />
+          </QueryProvider>
+        </AuthProvider>,
+      );
 
-    expect(screen.getByText(/sign in to view the feed/i)).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /local authentication/i }),
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText(/access token/i)).toBeInTheDocument();
+    } finally {
+      process.env.NEXT_PUBLIC_AUTH_MODE = previousAuthMode;
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = previousPublishableKey;
+      window.sessionStorage.clear();
+    }
   });
 });
