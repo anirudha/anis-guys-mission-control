@@ -55,10 +55,10 @@ frontend-format-check: frontend-tooling ## Check frontend formatting (prettier)
 	$(NODE_WRAP) --cwd $(FRONTEND_DIR) npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}" "*.{ts,js,json,md,mdx}"
 
 .PHONY: lint
-lint: backend-lint frontend-lint ## Lint backend + frontend
+lint: backend-lint frontend-lint docs-lint ## Lint backend + frontend + docs
 
 .PHONY: backend-lint
-backend-lint: ## Lint backend (flake8)
+backend-lint: backend-format-check backend-typecheck ## Lint backend (isort/black checks + flake8 + mypy)
 	cd $(BACKEND_DIR) && uv run flake8 --config .flake8
 
 .PHONY: frontend-lint

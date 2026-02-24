@@ -107,7 +107,6 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
         run: |
           make backend-lint
-          make backend-typecheck
           make backend-coverage
 
       - name: Run frontend checks
@@ -125,7 +124,7 @@ jobs:
           make frontend-build
 
 
-      - name: Docs quality gates (lint + relative link check)
+      - name: Docs quality gates
         run: |
           make docs-check
 

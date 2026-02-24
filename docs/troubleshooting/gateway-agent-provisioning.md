@@ -104,4 +104,3 @@ Actions:
    - gateway logs around bootstrap
    - worker logs around lifecycle events
    - agent `last_provision_error`, `wake_attempts`, `last_seen_at`
-
