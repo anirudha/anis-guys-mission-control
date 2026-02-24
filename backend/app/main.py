@@ -5,7 +5,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
 
-from fastapi import APIRouter, FastAPI, Request, Response, status
+from fastapi import APIRouter, FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi_pagination import add_pagination
@@ -34,6 +34,7 @@ from app.api.users import router as users_router
 from app.core.config import settings
 from app.core.error_handling import install_error_handling
 from app.core.logging import configure_logging, get_logger
+from app.core.security_headers import SecurityHeadersMiddleware
 from app.db.session import init_db
 from app.schemas.health import HealthStatusResponse
 
@@ -464,18 +465,14 @@ if origins:
 else:
     logger.info("app.cors.disabled")
 
+app.add_middleware(
+    SecurityHeadersMiddleware,
+    x_content_type_options=settings.security_header_x_content_type_options,
+    x_frame_options=settings.security_header_x_frame_options,
+    referrer_policy=settings.security_header_referrer_policy,
+    permissions_policy=settings.security_header_permissions_policy,
+)
 install_error_handling(app)
-
-
-@app.middleware("http")
-async def security_headers(request: Request, call_next: Any) -> Response:
-    """Inject standard security headers into every response."""
-    response: Response = await call_next(request)
-    response.headers.setdefault("X-Content-Type-Options", "nosniff")
-    response.headers.setdefault("X-Frame-Options", "DENY")
-    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-    response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
-    return response
 
 
 @app.get(
