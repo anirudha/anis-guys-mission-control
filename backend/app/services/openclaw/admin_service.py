@@ -21,24 +21,18 @@ from app.models.gateways import Gateway
 from app.models.tasks import Task
 from app.schemas.gateways import GatewayTemplatesSyncResult
 from app.services.openclaw.constants import DEFAULT_HEARTBEAT_CONFIG
-from app.services.openclaw.db_agent_state import (
-    mark_provision_complete,
-    mark_provision_requested,
-    mint_agent_token,
-)
 from app.services.openclaw.db_service import OpenClawDBService
 from app.services.openclaw.error_messages import normalize_gateway_error_message
 from app.services.openclaw.gateway_compat import check_gateway_version_compatibility
 from app.services.openclaw.gateway_rpc import GatewayConfig as GatewayClientConfig
 from app.services.openclaw.gateway_rpc import OpenClawGatewayError, openclaw_call
-from app.services.openclaw.provisioning import OpenClawGatewayProvisioner
+from app.services.openclaw.lifecycle_orchestrator import AgentLifecycleOrchestrator
 from app.services.openclaw.provisioning_db import (
     GatewayTemplateSyncOptions,
     OpenClawProvisioningService,
 )
 from app.services.openclaw.session_service import GatewayTemplateSyncQuery
 from app.services.openclaw.shared import GatewayAgentIdentity
-from app.services.organizations import get_org_owner_user
 
 if TYPE_CHECKING:
     from sqlmodel.ext.asyncio.session import AsyncSession
@@ -222,69 +216,38 @@ class GatewayAdminLifecycleService(OpenClawDBService):
         action: str,
         notify: bool,
     ) -> Agent:
-        template_user = user or await get_org_owner_user(
-            self.session,
-            organization_id=gateway.organization_id,
-        )
-        if template_user is None:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail="Organization owner not found (required for gateway agent USER.md rendering).",
-            )
-        raw_token = mint_agent_token(agent)
-        mark_provision_requested(
-            agent,
-            action=action,
-            status="updating" if action == "update" else "provisioning",
-        )
-        await self.add_commit_refresh(agent)
-        if not gateway.url:
-            return agent
-
+        orchestrator = AgentLifecycleOrchestrator(self.session)
         try:
-            await OpenClawGatewayProvisioner().apply_agent_lifecycle(
-                agent=agent,
+            provisioned = await orchestrator.run_lifecycle(
                 gateway=gateway,
+                agent_id=agent.id,
                 board=None,
-                auth_token=raw_token,
-                user=template_user,
+                user=user,
                 action=action,
+                auth_token=None,
+                force_bootstrap=False,
+                reset_session=False,
                 wake=notify,
                 deliver_wakeup=True,
+                wakeup_verb=None,
+                clear_confirm_token=False,
+                raise_gateway_errors=True,
             )
-        except OpenClawGatewayError as exc:
+        except HTTPException:
             self.logger.error(
-                "gateway.main_agent.provision_failed_gateway gateway_id=%s agent_id=%s error=%s",
+                "gateway.main_agent.provision_failed gateway_id=%s agent_id=%s action=%s",
                 gateway.id,
                 agent.id,
-                str(exc),
+                action,
             )
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"Gateway {action} failed: {exc}",
-            ) from exc
-        except (OSError, RuntimeError, ValueError) as exc:
-            self.logger.error(
-                "gateway.main_agent.provision_failed gateway_id=%s agent_id=%s error=%s",
-                gateway.id,
-                agent.id,
-                str(exc),
-            )
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Unexpected error {action}ing gateway provisioning.",
-            ) from exc
-
-        mark_provision_complete(agent, status="online")
-        await self.add_commit_refresh(agent)
-
+            raise
         self.logger.info(
             "gateway.main_agent.provision_success gateway_id=%s agent_id=%s action=%s",
             gateway.id,
-            agent.id,
+            provisioned.id,
             action,
         )
-        return agent
+        return provisioned
 
     async def ensure_main_agent(
         self,

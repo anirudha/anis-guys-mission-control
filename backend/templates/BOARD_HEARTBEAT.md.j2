@@ -35,12 +35,20 @@ jq -r '
 
 ## Schedule
 - If a heartbeat schedule is configured, send a lightweight check-in only.
+- On first cycle after wake/bootstrap, run heartbeat check-in immediately (do not wait for cadence).
 - Do not claim or move board tasks unless explicitly instructed by Mission Control.
 - If you have any pending `LEAD REQUEST: ASK USER` messages in OpenClaw chat, handle them promptly (see AGENTS.md).
 
 ## Heartbeat checklist
-1) Check in:
+1) Check in immediately:
 - Use the `agent-main` heartbeat endpoint (`POST /api/v1/agent/heartbeat`).
+- Startup check-in example:
+
+```bash
+curl -s -X POST "{{ base_url }}/api/v1/agent/heartbeat" \
+  -H "X-Agent-Token: {{ auth_token }}"
+```
+
 - If check-in fails due to 5xx/network, stop and retry next heartbeat.
 - During that failure window, do **not** write memory updates (`MEMORY.md`, daily memory files).
 
@@ -117,6 +125,7 @@ jq -r '
 
 ## Schedule
 - Heartbeat cadence is controlled by gateway heartbeat config.
+- On first cycle after wake/bootstrap, run heartbeat check-in immediately (do not wait for cadence).
 - Keep cadence conservative unless there is a clear latency need.
 
 ## Non-Negotiable Rules

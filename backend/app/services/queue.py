@@ -150,6 +150,32 @@ def enqueue_task(
         return False
 
 
+def enqueue_task_with_delay(
+    task: QueuedTask,
+    queue_name: str,
+    *,
+    delay_seconds: float,
+    redis_url: str | None = None,
+) -> bool:
+    """Enqueue a task immediately or schedule it for delayed delivery."""
+    delay = max(0.0, float(delay_seconds))
+    if delay == 0:
+        return enqueue_task(task, queue_name, redis_url=redis_url)
+    try:
+        return _schedule_for_later(task, queue_name, delay, redis_url=redis_url)
+    except Exception as exc:
+        logger.warning(
+            "rq.queue.schedule_failed",
+            extra={
+                "task_type": task.task_type,
+                "queue_name": queue_name,
+                "delay_seconds": delay,
+                "error": str(exc),
+            },
+        )
+        return False
+
+
 def _coerce_datetime(raw: object | None) -> datetime:
     if raw is None:
         return datetime.now(UTC)

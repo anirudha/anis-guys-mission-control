@@ -47,7 +47,9 @@ def test_extract_config_last_touched_version_reads_config_meta_last_touched_vers
     assert gateway_compat.extract_config_last_touched_version(payload) == "2026.2.9"
 
 
-def test_extract_config_last_touched_version_returns_none_without_config_meta_last_touched_version() -> None:
+def test_extract_config_last_touched_version_returns_none_without_config_meta_last_touched_version() -> (
+    None
+):
     payload = {
         "config": {"wizard": {"lastRunVersion": "2026.2.9"}},
     }

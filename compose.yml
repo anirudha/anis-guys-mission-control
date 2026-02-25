@@ -21,6 +21,11 @@ services:
     image: redis:7-alpine
     ports:
       - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   backend:
     build:
@@ -42,7 +47,7 @@ services:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     ports:
       - "${BACKEND_PORT:-8000}:8000"
 
@@ -75,7 +80,7 @@ services:
       - ./backend/.env.example
     depends_on:
       redis:
-        condition: service_started
+        condition: service_healthy
       db:
         condition: service_healthy
     environment:

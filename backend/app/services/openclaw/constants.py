@@ -18,6 +18,11 @@ DEFAULT_HEARTBEAT_CONFIG: dict[str, Any] = {
 }
 
 OFFLINE_AFTER = timedelta(minutes=10)
+# Provisioning convergence policy:
+# - require first heartbeat/check-in within 30s of wake
+# - allow up to 3 wake attempts before giving up
+CHECKIN_DEADLINE_AFTER_WAKE = timedelta(seconds=30)
+MAX_WAKE_ATTEMPTS_WITHOUT_CHECKIN = 3
 AGENT_SESSION_PREFIX = "agent"
 
 DEFAULT_CHANNEL_HEARTBEAT_VISIBILITY: dict[str, bool] = {

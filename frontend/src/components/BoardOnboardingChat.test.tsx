@@ -86,6 +86,9 @@ describe("BoardOnboardingChat polling", () => {
     );
 
     await screen.findByText("What should we prioritize?");
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Option A" })).toBeEnabled();
+    });
     const callsBeforeWait = getOnboardingMock.mock.calls.length;
 
     await act(async () => {
