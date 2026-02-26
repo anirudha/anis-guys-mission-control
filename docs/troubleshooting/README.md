@@ -1,3 +1,3 @@
 # Troubleshooting
 
-Placeholder.
+- [Gateway agent provisioning and check-in](./gateway-agent-provisioning.md)

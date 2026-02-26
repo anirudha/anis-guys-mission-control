@@ -101,17 +101,20 @@ Notes:
 From repo root (recommended):
 
 ```bash
-make backend-test
 make backend-lint
-make backend-typecheck
+make backend-test
 make backend-coverage
 ```
+
+`make backend-lint` runs backend format checks (`isort`, `black`), lint (`flake8`), and typecheck (`mypy`) in one command.
 
 Or from `backend/`:
 
 ```bash
 cd backend
 uv run pytest
+uv run isort . --check-only --diff
+uv run black . --check --diff
 uv run flake8 --config .flake8
 uv run mypy
 ```

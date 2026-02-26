@@ -31,6 +31,7 @@ class BoardBase(SQLModel):
     goal_source: str | None = None
     require_approval_for_done: bool = True
     require_review_before_done: bool = False
+    comment_required_for_review: bool = False
     block_status_changes_with_pending_approval: bool = False
     only_lead_can_change_status: bool = False
     max_agents: int = Field(default=1, ge=0)
@@ -75,6 +76,7 @@ class BoardUpdate(SQLModel):
     goal_source: str | None = None
     require_approval_for_done: bool | None = None
     require_review_before_done: bool | None = None
+    comment_required_for_review: bool | None = None
     block_status_changes_with_pending_approval: bool | None = None
     only_lead_can_change_status: bool | None = None
     max_agents: int | None = Field(default=None, ge=0)

@@ -86,6 +86,7 @@ def test_board_rule_toggles_have_expected_defaults() -> None:
     )
     assert created.require_approval_for_done is True
     assert created.require_review_before_done is False
+    assert created.comment_required_for_review is False
     assert created.block_status_changes_with_pending_approval is False
     assert created.only_lead_can_change_status is False
     assert created.max_agents == 1
@@ -93,12 +94,14 @@ def test_board_rule_toggles_have_expected_defaults() -> None:
     updated = BoardUpdate(
         require_approval_for_done=False,
         require_review_before_done=True,
+        comment_required_for_review=True,
         block_status_changes_with_pending_approval=True,
         only_lead_can_change_status=True,
         max_agents=3,
     )
     assert updated.require_approval_for_done is False
     assert updated.require_review_before_done is True
+    assert updated.comment_required_for_review is True
     assert updated.block_status_changes_with_pending_approval is True
     assert updated.only_lead_can_change_status is True
     assert updated.max_agents == 3

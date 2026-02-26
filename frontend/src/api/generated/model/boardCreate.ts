@@ -23,6 +23,7 @@ export interface BoardCreate {
   goal_source?: string | null;
   require_approval_for_done?: boolean;
   require_review_before_done?: boolean;
+  comment_required_for_review?: boolean;
   block_status_changes_with_pending_approval?: boolean;
   only_lead_can_change_status?: boolean;
   /** @minimum 0 */
