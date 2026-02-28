@@ -363,6 +363,7 @@ def _build_context(
         "board_goal_confirmed": str(board.goal_confirmed).lower(),
         "board_rule_require_approval_for_done": str(board.require_approval_for_done).lower(),
         "board_rule_require_review_before_done": str(board.require_review_before_done).lower(),
+        "board_rule_comment_required_for_review": str(board.comment_required_for_review).lower(),
         "board_rule_block_status_changes_with_pending_approval": str(
             board.block_status_changes_with_pending_approval
         ).lower(),

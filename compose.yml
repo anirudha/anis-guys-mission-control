@@ -34,7 +34,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     env_file:
-      - ./backend/.env.example
+      - ./backend/.env
     environment:
       # Override localhost defaults for container networking
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-mission_control}
@@ -77,7 +77,7 @@ services:
       dockerfile: backend/Dockerfile
     command: ["rq", "worker", "-u", "redis://redis:6379/0"]
     env_file:
-      - ./backend/.env.example
+      - ./backend/.env
     depends_on:
       redis:
         condition: service_healthy

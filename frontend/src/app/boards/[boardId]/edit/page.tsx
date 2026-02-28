@@ -291,6 +291,9 @@ export default function EditBoardPage() {
   const [requireReviewBeforeDone, setRequireReviewBeforeDone] = useState<
     boolean | undefined
   >(undefined);
+  const [commentRequiredForReview, setCommentRequiredForReview] = useState<
+    boolean | undefined
+  >(undefined);
   const [
     blockStatusChangesWithPendingApproval,
     setBlockStatusChangesWithPendingApproval,
@@ -504,6 +507,8 @@ export default function EditBoardPage() {
     requireApprovalForDone ?? baseBoard?.require_approval_for_done ?? true;
   const resolvedRequireReviewBeforeDone =
     requireReviewBeforeDone ?? baseBoard?.require_review_before_done ?? false;
+  const resolvedCommentRequiredForReview =
+    commentRequiredForReview ?? baseBoard?.comment_required_for_review ?? false;
   const resolvedBlockStatusChangesWithPendingApproval =
     blockStatusChangesWithPendingApproval ??
     baseBoard?.block_status_changes_with_pending_approval ??
@@ -588,6 +593,7 @@ export default function EditBoardPage() {
     setObjective(updated.objective ?? "");
     setRequireApprovalForDone(updated.require_approval_for_done ?? true);
     setRequireReviewBeforeDone(updated.require_review_before_done ?? false);
+    setCommentRequiredForReview(updated.comment_required_for_review ?? false);
     setBlockStatusChangesWithPendingApproval(
       updated.block_status_changes_with_pending_approval ?? false,
     );
@@ -656,6 +662,7 @@ export default function EditBoardPage() {
           : resolvedObjective.trim() || null,
       require_approval_for_done: resolvedRequireApprovalForDone,
       require_review_before_done: resolvedRequireReviewBeforeDone,
+      comment_required_for_review: resolvedCommentRequiredForReview,
       block_status_changes_with_pending_approval:
         resolvedBlockStatusChangesWithPendingApproval,
       only_lead_can_change_status: resolvedOnlyLeadCanChangeStatus,
@@ -1013,6 +1020,42 @@ export default function EditBoardPage() {
                   <span className="block text-xs text-slate-600">
                     Tasks must move to <code>review</code> before they can be
                     marked <code>done</code>.
+                  </span>
+                </span>
+              </div>
+              <div className="flex items-start gap-3 rounded-lg border border-slate-200 px-3 py-3">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={resolvedCommentRequiredForReview}
+                  aria-label="Require comment for review"
+                  onClick={() =>
+                    setCommentRequiredForReview(
+                      !resolvedCommentRequiredForReview,
+                    )
+                  }
+                  disabled={isLoading}
+                  className={`mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition ${
+                    resolvedCommentRequiredForReview
+                      ? "border-emerald-600 bg-emerald-600"
+                      : "border-slate-300 bg-slate-200"
+                  } ${isLoading ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transition ${
+                      resolvedCommentRequiredForReview
+                        ? "translate-x-5"
+                        : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+                <span className="space-y-1">
+                  <span className="block text-sm font-medium text-slate-900">
+                    Require comment for review
+                  </span>
+                  <span className="block text-xs text-slate-600">
+                    Require a task comment when moving status to{" "}
+                    <code>review</code>.
                   </span>
                 </span>
               </div>

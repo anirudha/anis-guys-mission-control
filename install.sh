@@ -737,6 +737,8 @@ main() {
   upsert_env_value "$REPO_ROOT/.env" "CORS_ORIGINS" "http://$public_host:$frontend_port"
 
   if [[ "$deployment_mode" == "docker" ]]; then
+    ensure_file_from_example "$REPO_ROOT/backend/.env" "$REPO_ROOT/backend/.env.example"
+
     upsert_env_value "$REPO_ROOT/.env" "DB_AUTO_MIGRATE" "true"
 
     info "Starting production-like Docker stack..."

@@ -69,11 +69,15 @@ async def test_update_board_notifies_agents_when_added_to_group(
     async def _fake_notify(**_kwargs: Any) -> None:
         calls["notify"] += 1
 
+    async def _fake_lead_notify(**_kwargs: Any) -> None:
+        return None
+
     async def _fake_get_by_id(*_args: Any, **_kwargs: Any) -> BoardGroup:
         return group
 
     monkeypatch.setattr(boards, "_apply_board_update", _fake_apply_board_update)
     monkeypatch.setattr(boards, "_notify_agents_on_board_group_addition", _fake_notify)
+    monkeypatch.setattr(boards, "_notify_lead_on_board_update", _fake_lead_notify)
     monkeypatch.setattr(boards.crud, "get_by_id", _fake_get_by_id)
 
     updated = await boards.update_board(
@@ -108,12 +112,16 @@ async def test_update_board_notifies_agents_when_removed_from_group(
     async def _fake_leave(**_kwargs: Any) -> None:
         calls["leave"] += 1
 
+    async def _fake_lead_notify(**_kwargs: Any) -> None:
+        return None
+
     async def _fake_get_by_id(*_args: Any, **_kwargs: Any) -> BoardGroup:
         return group
 
     monkeypatch.setattr(boards, "_apply_board_update", _fake_apply_board_update)
     monkeypatch.setattr(boards, "_notify_agents_on_board_group_addition", _fake_join)
     monkeypatch.setattr(boards, "_notify_agents_on_board_group_removal", _fake_leave)
+    monkeypatch.setattr(boards, "_notify_lead_on_board_update", _fake_lead_notify)
     monkeypatch.setattr(boards.crud, "get_by_id", _fake_get_by_id)
 
     updated = await boards.update_board(
@@ -151,6 +159,9 @@ async def test_update_board_notifies_agents_when_moved_between_groups(
     async def _fake_leave(**_kwargs: Any) -> None:
         calls["leave"] += 1
 
+    async def _fake_lead_notify(**_kwargs: Any) -> None:
+        return None
+
     async def _fake_get_by_id(_session: Any, _model: Any, obj_id: UUID) -> BoardGroup | None:
         if obj_id == old_group_id:
             return old_group
@@ -161,6 +172,7 @@ async def test_update_board_notifies_agents_when_moved_between_groups(
     monkeypatch.setattr(boards, "_apply_board_update", _fake_apply_board_update)
     monkeypatch.setattr(boards, "_notify_agents_on_board_group_addition", _fake_join)
     monkeypatch.setattr(boards, "_notify_agents_on_board_group_removal", _fake_leave)
+    monkeypatch.setattr(boards, "_notify_lead_on_board_update", _fake_lead_notify)
     monkeypatch.setattr(boards.crud, "get_by_id", _fake_get_by_id)
 
     updated = await boards.update_board(
@@ -192,9 +204,13 @@ async def test_update_board_does_not_notify_when_group_unchanged(
     async def _fake_notify(**_kwargs: Any) -> None:
         calls["notify"] += 1
 
+    async def _fake_lead_notify(**_kwargs: Any) -> None:
+        return None
+
     monkeypatch.setattr(boards, "_apply_board_update", _fake_apply_board_update)
     monkeypatch.setattr(boards, "_notify_agents_on_board_group_addition", _fake_notify)
     monkeypatch.setattr(boards, "_notify_agents_on_board_group_removal", _fake_notify)
+    monkeypatch.setattr(boards, "_notify_lead_on_board_update", _fake_lead_notify)
 
     updated = await boards.update_board(
         payload=payload,
@@ -204,6 +220,66 @@ async def test_update_board_does_not_notify_when_group_unchanged(
 
     assert updated.name == "Platform X"
     assert calls["notify"] == 0
+
+
+@pytest.mark.asyncio
+async def test_update_board_notifies_lead_when_fields_change(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    board = _board(board_group_id=None)
+    session = _FakeSession()
+    payload = BoardUpdate(name="Platform X")
+    calls: dict[str, object] = {"count": 0, "changes": {}}
+
+    async def _fake_apply_board_update(**kwargs: Any) -> Board:
+        target: Board = kwargs["board"]
+        target.name = "Platform X"
+        return target
+
+    async def _fake_lead_notify(**kwargs: Any) -> None:
+        calls["count"] = int(calls["count"]) + 1
+        calls["changes"] = kwargs["changed_fields"]
+
+    monkeypatch.setattr(boards, "_apply_board_update", _fake_apply_board_update)
+    monkeypatch.setattr(boards, "_notify_lead_on_board_update", _fake_lead_notify)
+
+    updated = await boards.update_board(
+        payload=payload,
+        session=session,  # type: ignore[arg-type]
+        board=board,
+    )
+
+    assert updated.name == "Platform X"
+    assert calls["count"] == 1
+    assert calls["changes"] == {"name": ("Platform", "Platform X")}
+
+
+@pytest.mark.asyncio
+async def test_update_board_skips_lead_notify_when_no_effective_change(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    board = _board(board_group_id=None)
+    session = _FakeSession()
+    payload = BoardUpdate(name="Platform")
+    calls = {"lead_notify": 0}
+
+    async def _fake_apply_board_update(**kwargs: Any) -> Board:
+        return kwargs["board"]
+
+    async def _fake_lead_notify(**_kwargs: Any) -> None:
+        calls["lead_notify"] += 1
+
+    monkeypatch.setattr(boards, "_apply_board_update", _fake_apply_board_update)
+    monkeypatch.setattr(boards, "_notify_lead_on_board_update", _fake_lead_notify)
+
+    updated = await boards.update_board(
+        payload=payload,
+        session=session,  # type: ignore[arg-type]
+        board=board,
+    )
+
+    assert updated.name == "Platform"
+    assert calls["lead_notify"] == 0
 
 
 @pytest.mark.asyncio

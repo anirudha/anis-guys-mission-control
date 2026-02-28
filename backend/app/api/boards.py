@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Literal, cast
 from uuid import UUID
@@ -61,6 +63,43 @@ AGENT_BOARD_ROLE_TAGS = cast("list[str | Enum]", ["agent-lead", "agent-worker"])
 _ERR_GATEWAY_MAIN_AGENT_REQUIRED = (
     "gateway must have a gateway main agent before boards can be created or updated"
 )
+
+
+def _format_board_field_value(value: object) -> str:
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, UUID):
+        return str(value)
+    if isinstance(value, dict):
+        return json.dumps(value, sort_keys=True, default=str)
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if value is None:
+        return "null"
+    return str(value)
+
+
+def _board_update_message(
+    *,
+    board: Board,
+    changed_fields: dict[str, tuple[object, object]],
+) -> str:
+    lines = [
+        "BOARD UPDATED",
+        f"Board: {board.name}",
+        f"Board ID: {board.id}",
+        "",
+        "Changed fields:",
+    ]
+    for field_name in sorted(changed_fields):
+        previous, current = changed_fields[field_name]
+        lines.append(
+            f"- {field_name}: {_format_board_field_value(previous)}"
+            f" -> {_format_board_field_value(current)}"
+        )
+    lines.append("")
+    lines.append("Take action: review the board changes and adjust plan/assignments as needed.")
+    return "\n".join(lines)
 
 
 async def _require_gateway_main_agent(session: AsyncSession, gateway: Gateway) -> None:
@@ -366,6 +405,53 @@ async def _notify_agents_on_board_group_removal(
     )
 
 
+async def _notify_lead_on_board_update(
+    *,
+    session: AsyncSession,
+    board: Board,
+    changed_fields: dict[str, tuple[object, object]],
+) -> None:
+    if not changed_fields:
+        return
+    lead = (
+        await Agent.objects.filter_by(board_id=board.id)
+        .filter(col(Agent.is_board_lead).is_(True))
+        .first(session)
+    )
+    if lead is None or not lead.openclaw_session_id:
+        return
+    dispatch = GatewayDispatchService(session)
+    config = await dispatch.optional_gateway_config_for_board(board)
+    if config is None:
+        return
+    message = _board_update_message(
+        board=board,
+        changed_fields=changed_fields,
+    )
+    error = await dispatch.try_send_agent_message(
+        session_key=lead.openclaw_session_id,
+        config=config,
+        agent_name=lead.name,
+        message=message,
+        deliver=False,
+    )
+    if error is None:
+        record_activity(
+            session,
+            event_type="board.lead_notified",
+            message=f"Lead agent notified for board update: {board.name}.",
+            agent_id=lead.id,
+        )
+    else:
+        record_activity(
+            session,
+            event_type="board.lead_notify_failed",
+            message=f"Lead board update notify failed for {board.name}: {error}",
+            agent_id=lead.id,
+        )
+    await session.commit()
+
+
 @router.get("", response_model=DefaultLimitOffsetPage[BoardRead])
 async def list_boards(
     gateway_id: UUID | None = GATEWAY_ID_QUERY,
@@ -450,8 +536,19 @@ async def update_board(
     board: Board = BOARD_USER_WRITE_DEP,
 ) -> Board:
     """Update mutable board properties."""
+    requested_updates = payload.model_dump(exclude_unset=True)
+    previous_values = {
+        field_name: getattr(board, field_name)
+        for field_name in requested_updates
+        if hasattr(board, field_name)
+    }
     previous_group_id = board.board_group_id
     updated = await _apply_board_update(payload=payload, session=session, board=board)
+    changed_fields = {
+        field_name: (previous_value, getattr(updated, field_name))
+        for field_name, previous_value in previous_values.items()
+        if previous_value != getattr(updated, field_name)
+    }
     new_group_id = updated.board_group_id
     if previous_group_id is not None and previous_group_id != new_group_id:
         previous_group = await crud.get_by_id(session, BoardGroup, previous_group_id)
@@ -483,6 +580,19 @@ async def update_board(
                     updated.id,
                     new_group_id,
                 )
+    if changed_fields:
+        try:
+            await _notify_lead_on_board_update(
+                session=session,
+                board=updated,
+                changed_fields=changed_fields,
+            )
+        except (OpenClawGatewayError, OSError, RuntimeError, ValueError):
+            logger.exception(
+                "board.update.notify_lead_unexpected board_id=%s changed_fields=%s",
+                updated.id,
+                sorted(changed_fields),
+            )
     return updated
 
 

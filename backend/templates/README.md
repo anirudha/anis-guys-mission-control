@@ -133,6 +133,7 @@ This avoids relying on startup hooks to populate `api/openapi.json`.
 - `workspace_path`
 - `board_rule_require_approval_for_done`
 - `board_rule_require_review_before_done`
+- `board_rule_comment_required_for_review`
 - `board_rule_block_status_changes_with_pending_approval`
 - `board_rule_only_lead_can_change_status`
 - `board_rule_max_agents`
